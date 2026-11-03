@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  ApiError,
   auth,
   comprovantes,
   convites,
@@ -20,6 +19,8 @@ import {
 } from "@/lib/api";
 import { useSession } from "@/lib/useSession";
 
+import ApiErrorAlert from "@/components/feedback/ApiErrorAlert";
+
 const inp =
   "w-full bg-[#0A1110] border border-gray-700 rounded-lg p-3 text-white focus:border-emerald-500 focus:outline-none text-sm";
 const lbl = "block text-xs uppercase text-gray-400 mb-1 font-semibold";
@@ -28,9 +29,6 @@ const btn =
 const btnGhost =
   "px-4 py-2 bg-white/5 hover:bg-white/10 border border-gray-700 text-xs rounded-lg text-white font-bold cursor-pointer disabled:opacity-50";
 const card = "bg-[#131D1C] p-6 rounded-2xl border border-emerald-900/50 shadow-xl";
-
-const msg = (e: unknown) =>
-  e instanceof ApiError ? e.message : e instanceof Error ? e.message : "Erro inesperado.";
 
 /* ───────── Leitura e aceite do regulamento + termo de consentimento ───────── */
 function TermosBox({
@@ -45,10 +43,13 @@ function TermosBox({
   const [lista, setLista] = useState<Termo[]>([]);
   const [ok, setOk] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [erro, setErro] = useState<string | null>(null);
+  const [erro, setErro] = useState<unknown>(null);
 
   useEffect(() => {
-    termos.vigentes(hackathonId).then(setLista).catch((e) => setErro(msg(e)));
+    termos
+      .vigentes(hackathonId)
+      .then(setLista)
+      .catch((e) => setErro(e));
   }, [hackathonId]);
 
   const confirmar = async () => {
@@ -57,7 +58,7 @@ function TermosBox({
     try {
       await onConfirmar(lista.map((t) => t.id));
     } catch (e) {
-      setErro(msg(e));
+      setErro(e);
     } finally {
       setBusy(false);
     }
@@ -78,7 +79,21 @@ function TermosBox({
           )}
         </details>
       ))}
-      {erro && <p className="text-red-400 text-xs">⚠️ {erro}</p>}
+
+
+      {erro != null && (
+        <ApiErrorAlert
+          erro={erro}
+          onRetry={() =>
+            termos
+              .vigentes(hackathonId)
+              .then(setLista)
+              .catch((e) => setErro(e))
+          }
+          onClose={() => setErro(null)}
+        />
+      )}
+
       {lista.length > 0 && (
         <>
           <label className="flex items-start gap-2 text-xs text-gray-300">
@@ -104,7 +119,7 @@ export default function InscricaoPage() {
   const router = useRouter();
   const { user, pronto } = useSession(["PARTICIPANTE"]);
   const [visao, setVisao] = useState<Visao>({ tipo: "carregando" });
-  const [erro, setErro] = useState<string | null>(null);
+  const [erro, setErro] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
 
   const [novaEquipe, setNovaEquipe] = useState({ nome: "", descricao: "" });
@@ -129,7 +144,7 @@ export default function InscricaoPage() {
       const [recebidos, comps] = await Promise.all([convites.meus(), comprovantes.meus()]);
       setVisao({ tipo: "sem-equipe", hackathonId: comps[0]?.hackathon_id ?? null, recebidos });
     } catch (e) {
-      setErro(msg(e));
+      setErro(e);
     }
   }, []);
 
@@ -145,7 +160,7 @@ export default function InscricaoPage() {
       await fn();
       await carregar();
     } catch (e) {
-      setErro(msg(e));
+      setErro(e);
     } finally {
       setBusy(false);
     }
@@ -158,7 +173,7 @@ export default function InscricaoPage() {
         // A descrição vira o rascunho da proposta; falha aqui não desfaz a equipe
         await propostas
           .criarRascunho(eq.id, { titulo: novaEquipe.nome.trim(), descricao: novaEquipe.descricao.trim() })
-          .catch(() => {});
+          .catch(() => { });
       }
     });
 
@@ -197,9 +212,13 @@ export default function InscricaoPage() {
 
         <h1 className="text-2xl font-bold text-white">Inscrição da Equipe</h1>
 
-        {erro && (
-          <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-xs">⚠️ {erro}</div>
-        )}
+        {erro != null && (
+  <ApiErrorAlert
+    erro={erro}
+    onRetry={carregar}
+    onClose={() => setErro(null)}
+  />
+)}
 
         {visao.tipo === "carregando" && !erro && (
           <p className="text-emerald-400 text-sm font-mono animate-pulse">Carregando...</p>

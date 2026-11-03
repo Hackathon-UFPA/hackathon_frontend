@@ -362,8 +362,11 @@ function toApiError(res: Response, data: unknown): ApiError {
     typeof detail === "string"
       ? detail
       : res.status === 429
-      ? "Conta bloqueada, tente novamente mais tarde."
-      : "Erro inesperado. Tente novamente.";
+        ? "Conta bloqueada, tente novamente mais tarde."
+        : res.status === 500 && data === null
+          ? "Não foi possível conectar ao servidor. Verifique sua conexão."
+          : "Erro inesperado. Tente novamente.";
+
   return new ApiError(res.status, message, {}, retryAfter);
 }
 

@@ -1,5 +1,5 @@
 "use client";
-
+import ApiErrorAlert from "@/components/feedback/ApiErrorAlert";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -71,8 +71,11 @@ export default function AuthPage() {
       const t = await auth.login(login.email.toLowerCase().trim(), login.senha);
       router.push(destinoPorPapel(t.usuario.papel));
     } catch (err) {
-      tratar(err);
-    } finally {
+  console.log("Erro capturado no login:", err);
+  console.log("É ApiError?", err instanceof ApiError);
+  console.log("É Error?", err instanceof Error);
+  tratar(err);
+} finally {
       setLoading(false);
     }
   };
@@ -110,8 +113,7 @@ export default function AuthPage() {
   };
 
   const abaCls = (a: string) =>
-    `flex-1 py-3 text-sm font-bold transition-all border-b-2 cursor-pointer ${
-      aba === a ? "border-emerald-500 text-emerald-400" : "border-transparent text-gray-400"
+    `flex-1 py-3 text-sm font-bold transition-all border-b-2 cursor-pointer ${aba === a ? "border-emerald-500 text-emerald-400" : "border-transparent text-gray-400"
     }`;
 
   return (
@@ -136,7 +138,10 @@ export default function AuthPage() {
           </div>
         )}
         {erro && (
-          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-xs">⚠️ {erro}</div>
+          <ApiErrorAlert
+            erro={erro}
+            onClose={() => setErro(null)}
+          />
         )}
 
         {aba === "login" ? (
