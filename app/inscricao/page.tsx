@@ -199,15 +199,7 @@ export default function InscricaoPage() {
           <Link href="/" className="text-xs text-emerald-500 hover:text-emerald-400 font-semibold">
             &larr; Voltar ao início
           </Link>
-          <button
-            className={btnGhost}
-            onClick={() => {
-              auth.logout();
-              router.push("/login");
-            }}
-          >
-            Sair {user?.nome ? `(${user.nome.split(" ")[0]})` : ""}
-          </button>
+        
         </div>
 
         <h1 className="text-2xl font-bold text-white">Inscrição da Equipe</h1>
