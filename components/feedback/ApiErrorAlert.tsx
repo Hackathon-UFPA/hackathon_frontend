@@ -21,8 +21,8 @@ export default function ApiErrorAlert({
     typeof erro === "string"
       ? erro
       : erro instanceof Error
-      ? erro.message
-      : "Erro inesperado. Tente novamente.";
+        ? erro.message
+        : "Erro inesperado. Tente novamente.";
 
   const semConexao =
     status === 0 ||
@@ -31,14 +31,14 @@ export default function ApiErrorAlert({
   const titulo = semConexao
     ? "Servidor indisponível"
     : status === 401
-    ? "Sessão expirada"
-    : status === 403
-    ? "Acesso negado"
-    : status === 422
-    ? "Dados inválidos"
-    : status === 429
-    ? "Muitas tentativas"
-    : "Erro na solicitação";
+      ? "Sessão expirada"
+      : status === 403
+        ? "Acesso negado"
+        : status === 422
+          ? "Dados inválidos"
+          : status === 429
+            ? "Muitas tentativas"
+            : "Erro na solicitação";
 
   return (
     <div
