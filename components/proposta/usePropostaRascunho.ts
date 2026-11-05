@@ -310,6 +310,7 @@ export function usePropostaRascunho(equipeId: string | null) {
     estado !== "salvando" &&
     (proposta === null || alteracoesPendentes);
 
+  // Salva após dois segundos sem alterações.
   useEffect(() => {
     const deveSalvarAutomaticamente =
       podeSalvar &&
@@ -331,6 +332,33 @@ export function usePropostaRascunho(equipeId: string | null) {
     estado,
     salvarRascunho,
   ]);
+
+  // Solicita confirmação ao sair com alterações ainda não salvas.
+  useEffect(() => {
+    const deveAvisarAoSair =
+      alteracoesPendentes || estado === "salvando";
+
+    if (!deveAvisarAoSair) return;
+
+    const avisarAntesDeSair = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+
+      // Compatibilidade com navegadores que exigem returnValue.
+      event.returnValue = true;
+    };
+
+    window.addEventListener(
+      "beforeunload",
+      avisarAntesDeSair
+    );
+
+    return () => {
+      window.removeEventListener(
+        "beforeunload",
+        avisarAntesDeSair
+      );
+    };
+  }, [alteracoesPendentes, estado]);
 
   return {
     proposta,
