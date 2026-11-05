@@ -34,6 +34,8 @@ export type FormProposta = {
   documento_url: string;
 };
 
+const INTERVALO_AUTOSAVE_MS = 2000;
+
 function criarFormVazio(): FormProposta {
   return {
     titulo: "",
@@ -82,7 +84,9 @@ function normalizarForm(form: FormProposta): PropostaInput {
 
 export function usePropostaRascunho(equipeId: string | null) {
   const [proposta, setProposta] = useState<Proposta | null>(null);
+
   const [form, setForm] = useState<FormProposta>(criarFormVazio);
+
   const [ultimoSalvo, setUltimoSalvo] =
     useState<FormProposta>(criarFormVazio);
 
@@ -91,6 +95,7 @@ export function usePropostaRascunho(equipeId: string | null) {
   );
 
   const [erro, setErro] = useState<unknown>(null);
+
   const [operacaoComErro, setOperacaoComErro] =
     useState<OperacaoRascunho | null>(null);
 
@@ -100,7 +105,6 @@ export function usePropostaRascunho(equipeId: string | null) {
   const [carregamentoConcluido, setCarregamentoConcluido] =
     useState(false);
 
-  // Invalida respostas antigas ao trocar de equipe ou desmontar.
   const versaoContextoRef = useRef(0);
   const carregamentoIdRef = useRef(0);
   const salvandoRef = useRef(false);
@@ -258,7 +262,7 @@ export function usePropostaRascunho(equipeId: string | null) {
       setProposta(rascunhoSalvo);
       setUltimoSalvo(dadosSalvos);
 
-      // Não sobrescreve o que foi digitado enquanto a API respondia.
+      // Mantém alterações feitas durante a requisição.
       setForm((atual) =>
         formulariosIguais(atual, formEnviado)
           ? dadosSalvos
@@ -305,6 +309,28 @@ export function usePropostaRascunho(equipeId: string | null) {
     estado !== "carregando" &&
     estado !== "salvando" &&
     (proposta === null || alteracoesPendentes);
+
+  useEffect(() => {
+    const deveSalvarAutomaticamente =
+      podeSalvar &&
+      alteracoesPendentes &&
+      estado !== "erro";
+
+    if (!deveSalvarAutomaticamente) return;
+
+    const temporizador = window.setTimeout(() => {
+      void salvarRascunho();
+    }, INTERVALO_AUTOSAVE_MS);
+
+    return () => {
+      window.clearTimeout(temporizador);
+    };
+  }, [
+    podeSalvar,
+    alteracoesPendentes,
+    estado,
+    salvarRascunho,
+  ]);
 
   return {
     proposta,

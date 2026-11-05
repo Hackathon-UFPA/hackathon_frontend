@@ -67,6 +67,10 @@ export default function PropostaRascunho({ equipeId }: Props) {
   const semEquipe = !equipeId || estado === "semEquipe";
   const propostaEnviada = proposta?.status === "ENVIADA";
 
+  const salvamentoPausado =
+    estado === "erro" &&
+    operacaoComErro === "salvar";
+
   let textoStatus = "Novo rascunho";
   let classeStatus = CLASSE_STATUS_NEUTRO;
 
@@ -83,6 +87,9 @@ export default function PropostaRascunho({ equipeId }: Props) {
   } else if (propostaEnviada) {
     textoStatus = "Proposta enviada";
     classeStatus = CLASSE_STATUS_VERDE;
+  } else if (salvamentoPausado) {
+    textoStatus = "Salvamento automático pausado";
+    classeStatus = CLASSE_STATUS_ERRO;
   } else if (alteracoesPendentes) {
     textoStatus = "Alterações não salvas";
     classeStatus = CLASSE_STATUS_AMARELO;
@@ -118,7 +125,8 @@ export default function PropostaRascunho({ equipeId }: Props) {
           </h3>
 
           <p className="text-sm text-gray-400 mt-1">
-            Salve sua ideia como rascunho e continue editando depois.
+            Suas alterações são salvas automaticamente após dois
+            segundos sem edição.
           </p>
         </div>
 
@@ -204,12 +212,22 @@ export default function PropostaRascunho({ equipeId }: Props) {
 
                 {alteracoesPendentes && (
                   <p className="mt-1 text-sm text-gray-300">
-                    Existem novas alterações que ainda precisam
-                    ser salvas.
+                    Existem novas alterações aguardando
+                    salvamento automático.
                   </p>
                 )}
               </div>
             </div>
+          )}
+
+          {salvamentoPausado && (
+            <p className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4 text-sm text-amber-200">
+              O salvamento automático foi pausado após uma falha.
+              Seu conteúdo continua neste formulário. Use
+              “Tentar novamente” no alerta ou “Salvar agora” para
+              repetir o salvamento. Após salvar com sucesso, o
+              automático será retomado.
+            </p>
           )}
 
           {propostaEnviada && (
@@ -338,7 +356,9 @@ export default function PropostaRascunho({ equipeId }: Props) {
             >
               {propostaEnviada
                 ? "A proposta enviada não pode ser alterada neste formulário."
-                : "Salvar o rascunho não envia a proposta definitiva. Você pode continuar preenchendo depois."}
+                : salvamentoPausado
+                  ? "Há uma falha de salvamento pendente. Use o botão para tentar salvar o conteúdo atual."
+                  : "O rascunho é salvo automaticamente. Use o botão para salvar agora. Isso não envia a proposta definitiva."}
             </p>
 
             <button
@@ -362,7 +382,7 @@ export default function PropostaRascunho({ equipeId }: Props) {
                     aria-hidden="true"
                     className="w-4 h-4"
                   />
-                  Salvar rascunho
+                  Salvar agora
                 </>
               )}
             </button>
