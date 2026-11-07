@@ -16,48 +16,10 @@ export default function LandingPage() {
       </div>
 
       {/* CABEÇALHO DE NAVEGAÇÃO FIXO */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#0A1110]/80 backdrop-blur-md border-b border-white/5 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 rounded bg-emerald-500 flex items-center justify-center text-black font-extrabold text-xs shadow-[0_0_15px_rgba(16,185,129,0.5)]">
-              IA
-            </div>
-            <span className="text-white font-bold tracking-widest text-sm uppercase">
-              HACKATHON AMAZÔNIA
-            </span>
-          </Link>
-
-          {/* Menu Central */}
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
-            <a href="#sobre" className="text-gray-300 hover:text-white transition-colors">
-              Sobre o Evento
-            </a>
-            <a href="#desafios" className="text-gray-300 hover:text-white transition-colors">
-              Desafios ODS
-            </a>
-            {/* Link apontando para a página /cronograma */}
-            <Link href="/cronograma" className="text-gray-300 hover:text-emerald-400 transition-colors">
-              Cronograma
-            </Link>
-          </nav>
-
-          {/* Ações da Direita */}
-          <div className="flex items-center gap-4">
-            <Link href="/equipe" className="text-sm font-semibold text-gray-300 hover:text-white transition-colors">
-              Acessar Painel
-            </Link>
-            <Link href="/inscricao" className="bg-emerald-600 text-white px-5 py-2 rounded-lg font-bold text-xs hover:bg-emerald-500 transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)]">
-              Inscreva-se
-            </Link>
-          </div>
-
-        </div>
-      </header>
+     
 
       {/* CONTEÚDO PRINCIPAL */}
-      <main className="relative z-10 flex-1 pt-28">
+      <main className="relative z-10 flex-1">
         
         {/* HERO SECTION */}
         <section className="max-w-5xl mx-auto px-6 py-20 text-center flex flex-col items-center">

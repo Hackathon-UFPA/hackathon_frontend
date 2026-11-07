@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import AccessibilityBar from "@/components/AccessibilityBar";
+import AppHeader from "@/components/layout/AppHeader";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -7,15 +8,23 @@ export const metadata: Metadata = {
   description: "Soluções de Inteligência Artificial para os desafios da região amazônica.",
 };
 
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className="scroll-smooth" suppressHydrationWarning>
+    <html
+      lang="pt-BR"
+      className="scroll-smooth"
+      suppressHydrationWarning
+    >
       <body className="antialiased bg-[#0A1110] selection:bg-emerald-500/30">
+        <AppHeader />
+
         {children}
+
         {/* Componente Flutuante de Acessibilidade */}
         <AccessibilityBar />
       </body>
