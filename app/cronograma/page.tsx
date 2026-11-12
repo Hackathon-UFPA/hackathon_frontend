@@ -15,21 +15,7 @@ export default function CronogramaPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-[#0A1110]/40 via-[#0A1110]/80 to-[#0A1110]"></div>
       </div>
 
-      {/* HEADER FIXO DE NAVEGAÇÃO */}
-      <header className="relative z-10 w-full border-b border-white/5 bg-[#0A1110]/80 backdrop-blur-md px-6 py-4 flex justify-between items-center">
-        <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-          <div className="w-8 h-8 rounded bg-emerald-500 flex items-center justify-center text-black font-extrabold text-xs shadow-[0_0_15px_rgba(16,185,129,0.5)]">IA</div>
-          <span className="text-white font-bold tracking-widest text-sm uppercase hidden sm:block">Hackathon Amazônia</span>
-        </Link>
-        <div className="flex items-center gap-6">
-          <Link href="/" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">
-            Início
-          </Link>
-          <Link href="/inscricao" className="bg-emerald-600 text-white px-5 py-2 rounded-lg font-bold text-xs hover:bg-emerald-500 transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)]">
-            Inscreva-se
-          </Link>
-        </div>
-      </header>
+     
 
       {/* CONTEÚDO PRINCIPAL DA TELA DE CRONOGRAMA */}
       <main className="relative z-10 flex-1 max-w-5xl mx-auto px-6 py-12 w-full">

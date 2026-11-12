@@ -14,19 +14,13 @@ export default function AdminDashboardPage() {
   return (
     <main className="min-h-screen bg-[#0A1110] text-gray-300 p-8 flex justify-center selection:bg-emerald-500/30">
       <div className="w-full max-w-2xl bg-[#131D1C] p-8 rounded-2xl border border-emerald-900/50 shadow-lg h-fit">
-        <div className="flex items-center justify-between mb-6">
-          <Link href="/" className="text-xs text-emerald-500 hover:text-emerald-400 font-semibold">
+        <div className="mb-6">
+          <Link
+            href="/"
+            className="text-xs text-emerald-500 hover:text-emerald-400 font-semibold"
+          >
             &larr; Voltar ao início
           </Link>
-          <button
-            className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-gray-700 text-xs rounded-lg text-white font-bold cursor-pointer"
-            onClick={() => {
-              auth.logout();
-              router.push("/login");
-            }}
-          >
-            Sair
-          </button>
         </div>
 
         <h1 className="text-2xl font-bold text-white mb-1">Painel de Administração</h1>
