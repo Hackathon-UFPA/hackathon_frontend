@@ -13,3 +13,15 @@ html.high-contrast body {
 html.large-text {
   font-size: 118% !important;
 }
+
+/* Esconde a barra de rolagem horizontal apenas no desktop */
+@media (min-width: 768px) {
+  .ods-carousel::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ods-carousel {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
