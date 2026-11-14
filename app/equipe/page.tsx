@@ -1,502 +1,562 @@
+// app/equipe/page.tsx
 "use client";
 
+import React, { Suspense, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import { Loader2 } from "lucide-react";
+  ConviteRecebido,
+  HackathonResumo,
+  MinhaEquipeResumo,
+  moduloCApi,
+  PainelEquipeNormalizado,
+  UsuarioMe,
+} from "@/lib/moduloC-api";
+import {
+  BadgeSituacaoConta,
+  BadgeSituacaoEquipe,
+  ReciboProtocolo,
+} from "@/components/modulo-c/StatusBadges";
+import { ComprovanteCard } from "@/components/modulo-c/ComprovanteCard";
+import { ConvitesRecebidos } from "@/components/modulo-c/ConvitesRecebidos";
+import {
+  FormCriarEquipe,
+  GestaoEquipe,
+} from "@/components/modulo-c/GestaoEquipe";
 
-import { equipes } from "@/lib/api";
-import ApiErrorAlert from "@/components/feedback/ApiErrorAlert";
-import PropostaRascunho from "@/components/proposta/PropostaRascunho";
+type AbaPainel = "visao-geral" | "inscricao" | "convites-conta" | "proposta";
 
-type EstadoEquipe = "carregando" | "pronto" | "semEquipe" | "erro";
+function FundoPadrao() {
+  return (
+    <div className="fixed inset-0 z-0 pointer-events-none">
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-15"
+        style={{
+          backgroundImage:
+            "url('https://images.unsplash.com/photo-1516245834210-c4c142787335?q=80&w=2069&auto=format&fit=crop')",
+        }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0A1110]/60 via-[#0A1110]/85 to-[#0A1110]" />
+    </div>
+  );
+}
 
-export default function EquipeDashboard() {
-  const [equipeId, setEquipeId] = useState<string | null>(null);
-  const [erroEquipe, setErroEquipe] = useState<unknown>(null);
-  const [estadoEquipe, setEstadoEquipe] =
-    useState<EstadoEquipe>("carregando");
+function ConteudoPainelEquipe() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const equipeIdUrl = searchParams.get("equipe_id");
 
-  const requisicaoEquipeRef = useRef(0);
+  const [usuario, setUsuario] = useState<UsuarioMe | null>(null);
+  const [hackathons, setHackathons] = useState<HackathonResumo[]>([]);
+  const [minhasEquipes, setMinhasEquipes] = useState<MinhaEquipeResumo[]>([]);
+  const [convitesPendentesCount, setConvitesPendentesCount] = useState(0);
 
-  const [tasks, setTasks] = useState([
-    { id: 1, text: "Validar Ideia com o Mentor", done: true },
-    { id: 2, text: "Construir MVP do Front-end", done: true },
-    { id: 3, text: "Conectar API do Back-end", done: false },
-    { id: 4, text: "Enviar Pitch de 3 minutos", done: false },
-  ]);
+  const [equipeSelecionadaId, setEquipeSelecionadaId] = useState<string>("");
+  const [hackathonCriacaoId, setHackathonCriacaoId] = useState<string>("");
+  const [painel, setPainel] = useState<PainelEquipeNormalizado | null>(null);
 
-  const carregarEquipe = useCallback(async () => {
-    const requisicaoId = ++requisicaoEquipeRef.current;
+  const [abaAtiva, setAbaAtiva] = useState<AbaPainel>("visao-geral");
+  const [carregandoInicial, setCarregandoInicial] = useState(true);
+  const [carregandoPainel, setCarregandoPainel] = useState(false);
+  const [erroGeral, setErroGeral] = useState<string | null>(null);
 
-    setEstadoEquipe("carregando");
-    setErroEquipe(null);
+  const carregarContextoBase = useCallback(async () => {
+    setCarregandoInicial(true);
+    setErroGeral(null);
 
     try {
-      const minhasEquipes = await equipes.minhas();
+      const me = await moduloCApi.obterMe();
+      setUsuario(me);
 
-      if (requisicaoId !== requisicaoEquipeRef.current) return;
-
-      const primeiraEquipe = minhasEquipes[0];
-
-      if (!primeiraEquipe) {
-        setEquipeId(null);
-        setEstadoEquipe("semEquipe");
+      if (me.papel !== "PARTICIPANTE" && me.papel !== "DEV") {
+        setErroGeral(
+          `Seu perfil atual é ${me.papel}. Esta área é exclusiva para participantes.`
+        );
+        setCarregandoInicial(false);
         return;
       }
 
-      setEquipeId(primeiraEquipe.id);
-      setEstadoEquipe("pronto");
-    } catch (err) {
-      if (requisicaoId !== requisicaoEquipeRef.current) return;
+      const [listaEquipes, listaConvites, listaHackathons] = await Promise.all([
+        moduloCApi.listarMinhasEquipes().catch(() => [] as MinhaEquipeResumo[]),
+        moduloCApi.listarMeusConvites().catch(() => [] as ConviteRecebido[]),
+        moduloCApi.listarHackathons().catch(() => [] as HackathonResumo[]),
+      ]);
 
-      setEquipeId(null);
-      setErroEquipe(err);
-      setEstadoEquipe("erro");
+      setMinhasEquipes(listaEquipes);
+      setConvitesPendentesCount(
+        listaConvites.filter((c) => c.status === "PENDENTE").length
+      );
+      setHackathons(listaHackathons);
+
+      const edicaoAberta = listaHackathons.find((h) => h.status === "INSCRICOES");
+      if (edicaoAberta && !hackathonCriacaoId) {
+        setHackathonCriacaoId(edicaoAberta.id);
+      }
+
+      if (equipeIdUrl && listaEquipes.some((e) => e.id === equipeIdUrl)) {
+        setEquipeSelecionadaId(equipeIdUrl);
+      } else if (listaEquipes.length === 1) {
+        setEquipeSelecionadaId(listaEquipes[0].id);
+      } else if (
+        equipeSelecionadaId &&
+        listaEquipes.some((e) => e.id === equipeSelecionadaId)
+      ) {
+        // Mantém seleção existente
+      } else {
+        setEquipeSelecionadaId("");
+      }
+    } catch (err: unknown) {
+      setErroGeral(
+        err instanceof Error
+          ? err.message
+          : "Não foi possível carregar os dados da sua sessão."
+      );
+    } finally {
+      setCarregandoInicial(false);
+    }
+  }, [equipeIdUrl, equipeSelecionadaId, hackathonCriacaoId]);
+
+  const carregarPainelSelecionado = useCallback(async (id: string) => {
+    if (!id) {
+      setPainel(null);
+      return;
+    }
+    setCarregandoPainel(true);
+    try {
+      const dados = await moduloCApi.obterPainelEquipe(id);
+      setPainel(dados);
+    } catch (err: unknown) {
+      setErroGeral(
+        err instanceof Error ? err.message : "Erro ao carregar painel da equipe."
+      );
+    } finally {
+      setCarregandoPainel(false);
     }
   }, []);
 
   useEffect(() => {
-    void carregarEquipe();
+    carregarContextoBase();
+  }, [carregarContextoBase]);
 
-    return () => {
-      requisicaoEquipeRef.current += 1;
-    };
-  }, [carregarEquipe]);
+  useEffect(() => {
+    if (equipeSelecionadaId) {
+      carregarPainelSelecionado(equipeSelecionadaId);
+    } else {
+      setPainel(null);
+    }
+  }, [equipeSelecionadaId, carregarPainelSelecionado]);
 
-  const toggleTask = (id: number) => {
-    setTasks((atuais) =>
-      atuais.map((task) =>
-        task.id === id
-          ? { ...task, done: !task.done }
-          : task
-      )
-    );
+  const selecionarEquipe = (novoId: string) => {
+    setEquipeSelecionadaId(novoId);
+    const params = new URLSearchParams(searchParams.toString());
+    if (novoId) {
+      params.set("equipe_id", novoId);
+    } else {
+      params.delete("equipe_id");
+    }
+    router.replace(`/equipe?${params.toString()}`);
   };
 
-  return (
-    <div className="min-h-screen bg-[#0A1110] text-gray-300 font-sans selection:bg-emerald-500/30 flex overflow-hidden">
-      {/* BACKGROUND GLOBAL DA FLORESTA */}
-      <div
-        aria-hidden="true"
-        className="fixed inset-0 z-0 pointer-events-none"
-      >
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-15"
-          style={{ backgroundImage: "url('/floresta.jpg')" }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0A1110] via-[#0A1110]/90 to-[#0A1110]/80" />
+  if (carregandoInicial) {
+    return (
+      <div className="min-h-screen bg-[#0A1110] text-gray-300 relative flex items-center justify-center p-6">
+        <FundoPadrao />
+        <p className="relative z-10 text-sm font-semibold text-emerald-400 animate-pulse">
+          Carregando área do participante...
+        </p>
       </div>
+    );
+  }
 
-      {/* SIDEBAR */}
-      <aside className="relative z-10 w-64 border-r border-white/5 bg-[#0A1110]/60 backdrop-blur-2xl flex-col hidden md:flex">
-        <div className="p-6 border-b border-white/5">
-          <Link
-            href="/"
-            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
-          >
-            <div className="w-8 h-8 rounded bg-emerald-500 flex items-center justify-center text-black font-extrabold text-xs shadow-[0_0_15px_rgba(16,185,129,0.5)]">
-              IA
-            </div>
-            <span className="text-white font-bold tracking-widest text-sm uppercase">
-              Hackathon 2027
-            </span>
-          </Link>
+  if (!usuario) {
+    return (
+      <div className="min-h-screen bg-[#0A1110] text-gray-300 relative flex items-center justify-center p-6">
+        <FundoPadrao />
+        <div className="relative z-10 max-w-md w-full bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl p-8 text-center space-y-4 shadow-2xl">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-300 text-[11px] font-semibold tracking-widest uppercase">
+            Sessão Necessária
+          </div>
+          <h1 className="text-2xl font-extrabold text-white">Acesso Restrito</h1>
+          <p className="text-xs text-gray-400 leading-relaxed">
+            {erroGeral || "Faça login com sua conta de participante para continuar."}
+          </p>
+          <div className="pt-2">
+            <Link
+              href="/login"
+              className="inline-block w-full sm:w-auto px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-lg shadow-emerald-950/50"
+            >
+              Ir para Login
+            </Link>
+          </div>
         </div>
+      </div>
+    );
+  }
 
+  return (
+    <div className="min-h-screen bg-[#0A1110] text-gray-300 relative">
+      <FundoPadrao />
+
+      {/* Barra Superior Institucional */}
+      <header className="bg-[#0A1110]/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-30">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              className="w-9 h-9 rounded-xl bg-emerald-500 text-black font-extrabold flex items-center justify-center text-sm"
+            >
+              IA
+            </Link>
+            <div>
+              <h1 className="text-base font-extrabold text-white leading-tight">
+                Hackathon IA Amazônia — Área do Participante
+              </h1>
+              <p className="text-xs text-gray-400">
+                {usuario.nome} ({usuario.email})
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <BadgeSituacaoConta situacao={usuario.situacao_conta} />
+            <Link
+              href="/"
+              className="px-3.5 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-semibold text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+            >
+              Página Inicial
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      <main className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+        {erroGeral && (
+          <div
+            role="alert"
+            className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs"
+          >
+            {erroGeral}
+          </div>
+        )}
+
+        {/* EQP-03: Seletor Explícito de Equipe / Edição */}
+        <section className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-5 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
+              Contexto de Edição e Equipe (EQP-03)
+            </p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {minhasEquipes.length === 0
+                ? "Você ainda não participa de nenhuma equipe."
+                : minhasEquipes.length === 1
+                ? "Equipe vinculada carregada."
+                : `Você possui ${minhasEquipes.length} equipes vinculadas. Selecione qual deseja gerenciar:`}
+            </p>
+          </div>
+
+          {minhasEquipes.length > 0 && (
+            <div className="flex items-center gap-2.5">
+              <label htmlFor="seletor-equipe-ativa" className="sr-only">
+                Selecionar equipe e edição
+              </label>
+              <select
+                id="seletor-equipe-ativa"
+                value={equipeSelecionadaId}
+                onChange={(e) => selecionarEquipe(e.target.value)}
+                className="px-3.5 py-2 rounded-lg bg-[#0A1110] border border-white/15 text-xs font-semibold text-white min-w-[260px] focus:outline-none focus:border-emerald-500"
+              >
+                {minhasEquipes.length > 1 && (
+                  <option value="">-- Escolha uma equipe / edição --</option>
+                )}
+                {minhasEquipes.map((eq) => (
+                  <option key={eq.id} value={eq.id}>
+                    {eq.nome} — {eq.hackathon_nome || eq.hackathon_id} ({eq.situacao})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </section>
+
+        {/* Navegação de Abas (EQP-06) */}
         <nav
-          aria-label="Painel da equipe"
-          className="flex-1 p-4 space-y-2"
+          aria-label="Navegação do painel do participante"
+          className="flex flex-wrap gap-2 border-b border-white/10 pb-3"
         >
           <button
             type="button"
-            className="w-full flex items-center gap-3 px-4 py-3 bg-emerald-500/10 text-emerald-400 rounded-lg border border-emerald-500/20 font-medium transition-all"
+            onClick={() => setAbaAtiva("visao-geral")}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
+              abaAtiva === "visao-geral"
+                ? "bg-emerald-600 text-white shadow-md shadow-emerald-950/50"
+                : "bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 hover:text-white"
+            }`}
           >
-            <svg
-              aria-hidden="true"
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-              />
-            </svg>
             Visão Geral
           </button>
 
           <button
             type="button"
-            className="w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+            onClick={() => setAbaAtiva("inscricao")}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
+              abaAtiva === "inscricao"
+                ? "bg-emerald-600 text-white shadow-md shadow-emerald-950/50"
+                : "bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 hover:text-white"
+            }`}
           >
-            <svg
-              aria-hidden="true"
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            Materiais ODS
+            Inscrição & Integrantes
           </button>
+
+          <button
+            type="button"
+            onClick={() => setAbaAtiva("convites-conta")}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center gap-2 ${
+              abaAtiva === "convites-conta"
+                ? "bg-emerald-600 text-white shadow-md shadow-emerald-950/50"
+                : "bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 hover:text-white"
+            }`}
+          >
+            <span>Conta & Convites</span>
+            {convitesPendentesCount > 0 && (
+              <span className="px-2 py-0.5 rounded-full text-[10px] bg-amber-500 text-black font-extrabold">
+                {convitesPendentesCount}
+              </span>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setAbaAtiva("proposta")}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
+              abaAtiva === "proposta"
+                ? "bg-emerald-600 text-white shadow-md shadow-emerald-950/50"
+                : "bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 hover:text-white"
+            }`}
+          >
+            Proposta (Módulo D)
+          </button>
+
+          <span
+            title="Disponível após homologação científica e abertura da fase de mentoria"
+            className="px-3.5 py-2 rounded-xl text-xs font-medium bg-white/[0.02] text-gray-500 border border-white/5 cursor-not-allowed"
+          >
+            Entregas, Mentoria & Chat (Fase 2)
+          </span>
         </nav>
 
-        <div className="p-4 border-t border-white/5">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-700 flex items-center justify-center text-black font-bold border-2 border-emerald-900">
-              AL
-            </div>
-            <div>
-              <p className="text-sm font-bold text-white">
-                Ada Lovelace
-              </p>
-              <p className="text-xs text-gray-500">
-                Líder Técnico
-              </p>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      {/* ÁREA PRINCIPAL */}
-      <main className="relative z-10 flex-1 min-w-0 flex flex-col h-full overflow-y-auto">
-        <header className="p-8 border-b border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-1">
-              Equipe Sistema Curupira
-            </h1>
-            <p className="text-emerald-500 text-sm font-medium flex items-center gap-2">
-              <span
-                aria-hidden="true"
-                className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"
-              />
-              Hackathon em Andamento
-            </p>
-          </div>
-
-          <div className="text-right">
-            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-              Tempo Restante
-            </p>
-            <p className="text-2xl font-mono text-white font-bold">
-              48:15:22
-            </p>
-          </div>
-        </header>
-
-        <div className="p-8 space-y-8 max-w-7xl mx-auto w-full">
-          {/* S4-08: Carregamento da equipe e proposta */}
-          {estadoEquipe === "carregando" && (
-            <section
-              aria-label="Carregamento da equipe"
-              aria-busy="true"
-              className="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur-md"
-            >
-              <div
-                role="status"
-                className="flex items-center justify-center gap-3 py-8 text-gray-400"
-              >
-                <Loader2
-                  aria-hidden="true"
-                  className="w-5 h-5 animate-spin text-emerald-400"
+        {/* ABA 1: VISÃO GERAL */}
+        {abaAtiva === "visao-geral" && (
+          <div className="space-y-6">
+            {!equipeSelecionadaId ? (
+              <>
+                <FormCriarEquipe
+                  hackathons={hackathons}
+                  hackathonSelecionadoId={hackathonCriacaoId}
+                  onSelectHackathon={setHackathonCriacaoId}
+                  situacaoConta={usuario.situacao_conta}
+                  onEquipeCriada={async (novaId) => {
+                    await carregarContextoBase();
+                    selecionarEquipe(novaId);
+                    setAbaAtiva("inscricao");
+                  }}
                 />
-                Carregando sua equipe...
-              </div>
-            </section>
-          )}
-
-          {estadoEquipe === "erro" && (
-            <section
-              aria-labelledby="erro-equipe-titulo"
-              className="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur-md space-y-4"
-            >
-              <div>
-                <h2
-                  id="erro-equipe-titulo"
-                  className="text-lg font-bold text-white"
-                >
-                  Não foi possível carregar sua equipe
-                </h2>
-                <p className="text-sm text-gray-400 mt-1">
-                  Precisamos identificar sua equipe antes de
-                  carregar a proposta.
-                </p>
-              </div>
-
-              {erroEquipe !== null ? (
-                <ApiErrorAlert
-                  erro={erroEquipe}
-                  onRetry={() => void carregarEquipe()}
-                  onClose={() => setErroEquipe(null)}
+                <ConvitesRecebidos
+                  situacaoConta={usuario.situacao_conta}
+                  onConviteRespondido={carregarContextoBase}
                 />
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => void carregarEquipe()}
-                  className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-300 transition hover:bg-emerald-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-                >
-                  Tentar carregar novamente
-                </button>
-              )}
-            </section>
-          )}
-
-          {estadoEquipe === "semEquipe" && (
-            <section
-              aria-labelledby="sem-equipe-titulo"
-              className="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur-md"
-            >
-              <h2
-                id="sem-equipe-titulo"
-                className="text-lg font-bold text-white"
-              >
-                Você ainda não está em uma equipe
-              </h2>
-
-              <p className="text-sm text-gray-400 mt-2">
-                Crie ou entre em uma equipe para carregar e salvar
-                o rascunho da proposta.
+              </>
+            ) : carregandoPainel || !painel ? (
+              <p className="text-xs text-emerald-400 animate-pulse">
+                Carregando painel da equipe...
               </p>
-
-              <div className="mt-5 flex flex-col sm:flex-row gap-3">
-                <Link
-                  href="/inscricao"
-                  className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
-                >
-                  Ir para inscrição
-                </Link>
-
-                <button
-                  type="button"
-                  onClick={() => void carregarEquipe()}
-                  className="rounded-lg border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium text-gray-300 transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-                >
-                  Atualizar situação
-                </button>
-              </div>
-            </section>
-          )}
-
-          {estadoEquipe === "pronto" && equipeId && (
-            <PropostaRascunho
-              key={equipeId}
-              equipeId={equipeId}
-            />
-          )}
-
-          {/* Seção 1: Esquadrão — dados demonstrativos */}
-          <section>
-            <div className="flex justify-between items-end mb-4">
-              <div>
-                <h2 className="text-xl font-bold text-white mb-1">
-                  Sincronização do Esquadrão
-                </h2>
-                <p className="text-sm text-gray-400">
-                  Capacidade atual: 2/4 membros exigidos.
-                </p>
-              </div>
-            </div>
-
-            <div className="relative">
-              <div className="absolute top-1/2 left-0 w-full h-0.5 bg-white/5 -translate-y-1/2 hidden md:block" />
-
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative z-10">
-                <div className="bg-[#131D1C] border border-emerald-500/30 p-5 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.1)] backdrop-blur-md flex flex-col items-center text-center">
-                  <div className="w-16 h-16 rounded-full bg-emerald-900 border-2 border-emerald-400 mb-3 overflow-hidden">
-                    <img
-                      src="https://i.pravatar.cc/150?img=5"
-                      alt="Ada"
-                      className="w-full h-full object-cover opacity-80"
-                    />
-                  </div>
-                  <h3 className="font-bold text-white text-sm">
-                    Ada Lovelace
-                  </h3>
-                  <span className="text-xs text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded mt-1 border border-emerald-500/20">
-                    Líder / Tech Lead
-                  </span>
-                </div>
-
-                <div className="bg-[#131D1C] border border-white/10 p-5 rounded-xl backdrop-blur-md flex flex-col items-center text-center">
-                  <div className="w-16 h-16 rounded-full bg-gray-800 border-2 border-gray-600 mb-3 overflow-hidden">
-                    <img
-                      src="https://i.pravatar.cc/150?img=11"
-                      alt="Alan"
-                      className="w-full h-full object-cover opacity-80 grayscale hover:grayscale-0 transition-all"
-                    />
-                  </div>
-                  <h3 className="font-bold text-gray-300 text-sm">
-                    Alan Turing
-                  </h3>
-                  <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded mt-1 border border-gray-700">
-                    Especialista IA
-                  </span>
-                </div>
-
-                <div className="border-2 border-dashed border-white/10 bg-white/5 p-5 rounded-xl flex flex-col items-center text-center justify-center min-h-[160px] group hover:border-emerald-500/50 transition-colors cursor-pointer">
-                  <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center mb-2 group-hover:bg-emerald-500/20 transition-colors">
-                    <svg
-                      aria-hidden="true"
-                      className="w-5 h-5 text-gray-500 group-hover:text-emerald-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4v16m8-8H4"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="font-bold text-gray-400 text-sm group-hover:text-white transition-colors">
-                    Aguardando Match
-                  </h3>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Clique para buscar UX/UI
-                  </p>
-                </div>
-
-                <div className="border-2 border-dashed border-white/10 bg-white/5 p-5 rounded-xl flex flex-col items-center text-center justify-center min-h-[160px] group hover:border-emerald-500/50 transition-colors cursor-pointer">
-                  <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center mb-2 group-hover:bg-emerald-500/20 transition-colors">
-                    <svg
-                      aria-hidden="true"
-                      className="w-5 h-5 text-gray-500 group-hover:text-emerald-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4v16m8-8H4"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="font-bold text-gray-400 text-sm group-hover:text-white transition-colors">
-                    Aguardando Match
-                  </h3>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Clique para buscar Dev
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Seção 2: Desafio e Tarefas */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="space-y-6">
-              <div className="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur-md">
-                <h3 className="text-xs text-gray-500 uppercase tracking-widest mb-3">
-                  Desafio Foco (ODS)
-                </h3>
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl">🌱</span>
-                  <div>
-                    <h4 className="text-white font-bold">
-                      Bioeconomia e Conservação
-                    </h4>
-                    <p className="text-sm text-gray-400 mt-1 leading-relaxed">
-                      Desenvolvendo uma IA para monitoramento
-                      preditivo de queimadas usando dados de
-                      satélite da região norte.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-b from-[#131D1C] to-transparent border border-emerald-900/30 rounded-xl p-6 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl" />
-                <h3 className="text-xs text-gray-500 uppercase tracking-widest mb-4">
-                  Mentor Alocado
-                </h3>
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 rounded-full bg-gray-800 border border-gray-600 overflow-hidden">
-                    <img
-                      src="https://i.pravatar.cc/150?img=33"
-                      alt="Mentor"
-                      className="w-full h-full object-cover opacity-80 grayscale"
-                    />
-                  </div>
-                  <div>
-                    <h4 className="text-white font-bold text-sm">
-                      Dr. Carlos Souza
-                    </h4>
-                    <p className="text-xs text-emerald-500">
-                      Engenharia de Dados (AWS)
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  className="w-full py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-sm font-bold rounded-lg border border-emerald-500/20 transition-colors"
-                >
-                  Agendar Check-in
-                </button>
-              </div>
-            </div>
-
-            <div className="lg:col-span-2 bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur-md">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-bold text-white">
-                  Próximos Passos da Maratona
-                </h3>
-                <span className="text-xs font-mono bg-white/10 px-2 py-1 rounded text-gray-300">
-                  {tasks.filter((task) => task.done).length}
-                  {" / "}
-                  {tasks.length} concluídos
-                </span>
-              </div>
-
-              <div className="space-y-3">
-                {tasks.map((task) => (
-                  <label
-                    key={task.id}
-                    className={`flex items-center gap-4 p-4 rounded-lg cursor-pointer border transition-all ${
-                      task.done
-                        ? "bg-emerald-500/5 border-emerald-500/20 opacity-70"
-                        : "bg-black/40 border-white/5 hover:border-white/10"
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={task.done}
-                      onChange={() => toggleTask(task.id)}
-                      className="w-5 h-5 rounded border-gray-600 text-emerald-500 focus:ring-emerald-500 bg-black/40 accent-emerald-500"
-                    />
-                    <span
-                      className={`text-sm font-medium ${
-                        task.done
-                          ? "text-gray-400 line-through"
-                          : "text-gray-200"
-                      }`}
-                    >
-                      {task.text}
+            ) : (
+              <>
+                {/* Cards de Situações Independentes (Regra 3.3) */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-5 space-y-2.5">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
+                      1. Situação da Sua Conta
                     </span>
-                  </label>
-                ))}
-              </div>
-            </div>
+                    <div>
+                      <BadgeSituacaoConta situacao={usuario.situacao_conta} />
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      {usuario.situacao_conta === "ATIVA"
+                        ? "Vínculo validado pelo Comitê."
+                        : "Aguardando aprovação do comprovante."}
+                    </p>
+                  </div>
+
+                  <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-5 space-y-2.5">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
+                      2. Inscrição da Equipe
+                    </span>
+                    <div>
+                      <BadgeSituacaoEquipe situacao={painel.situacao} />
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      {painel.situacao === "EM_FORMACAO" &&
+                        "Conclua a formação e aceite os termos para enviar."}
+                      {painel.situacao === "AGUARDANDO_HOMOLOGACAO" &&
+                        "Inscrição concluída; aguardando homologação oficial."}
+                      {painel.situacao === "HOMOLOGADA" &&
+                        "Equipe homologada e apta para submeter proposta."}
+                      {painel.situacao === "NAO_HOMOLOGADA" &&
+                        "Inscrição não homologada. Consulte os detalhes com a organização."}
+                    </p>
+                  </div>
+
+                  <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-5 space-y-2.5">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
+                      3. Proposta Científica
+                    </span>
+                    <div>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-white/5 text-gray-200 border-white/15">
+                        {painel.situacao === "HOMOLOGADA"
+                          ? "Liberada para Elaboração"
+                          : "Aguardando Homologação da Equipe"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      O envio da proposta exige a equipe com inscrição homologada.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Protocolo de Inscrição (se já concluída) */}
+                {painel.protocolo_inscricao && (
+                  <ReciboProtocolo
+                    tipo="INSCRICAO_EQUIPE"
+                    numero={painel.protocolo_inscricao.numero}
+                    emitidoEm={painel.protocolo_inscricao.emitido_em}
+                  />
+                )}
+
+                {/* Pendências da Equipe */}
+                <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-6 shadow-lg space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-base font-bold text-white">
+                      Pendências da Equipe ({painel.pendencias.length})
+                    </h2>
+                    <button
+                      type="button"
+                      onClick={() => setAbaAtiva("inscricao")}
+                      className="text-xs font-bold text-emerald-400 hover:text-emerald-300 hover:underline cursor-pointer"
+                    >
+                      Gerenciar integrantes &rarr;
+                    </button>
+                  </div>
+
+                  {painel.pendencias.length === 0 ? (
+                    <p className="text-xs text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3.5">
+                      Nenhuma pendência registrada no momento.
+                    </p>
+                  ) : (
+                    <ul className="space-y-1.5 text-xs text-amber-200 bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 list-disc pl-8">
+                      {painel.pendencias.map((p, i) => (
+                        <li key={i}>{p}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </>
+            )}
           </div>
-        </div>
+        )}
+
+        {/* ABA 2: INSCRIÇÃO & INTEGRANTES (EQP-04) */}
+        {abaAtiva === "inscricao" && (
+          <div className="space-y-6">
+            {equipeSelecionadaId && painel ? (
+              <GestaoEquipe
+                painel={painel}
+                usuario={usuario}
+                onRecarregarPainel={async () => {
+                  await carregarPainelSelecionado(equipeSelecionadaId);
+                  await carregarContextoBase();
+                }}
+              />
+            ) : (
+              <FormCriarEquipe
+                hackathons={hackathons}
+                hackathonSelecionadoId={hackathonCriacaoId}
+                onSelectHackathon={setHackathonCriacaoId}
+                situacaoConta={usuario.situacao_conta}
+                onEquipeCriada={async (novaId) => {
+                  await carregarContextoBase();
+                  selecionarEquipe(novaId);
+                }}
+              />
+            )}
+          </div>
+        )}
+
+        {/* ABA 3: CONTA, COMPROVANTES E CONVITES (EQP-01 + EQP-02) */}
+        {abaAtiva === "convites-conta" && (
+          <div className="space-y-6">
+            <ComprovanteCard
+              situacaoConta={usuario.situacao_conta}
+              onAtualizarUsuario={carregarContextoBase}
+            />
+            <ConvitesRecebidos
+              situacaoConta={usuario.situacao_conta}
+              onConviteRespondido={async () => {
+                await carregarContextoBase();
+                setAbaAtiva("visao-geral");
+              }}
+            />
+          </div>
+        )}
+
+        {/* ABA 4: PONTE PARA MÓDULO D (PROPOSTA) */}
+        {abaAtiva === "proposta" && (
+          <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-6 shadow-lg space-y-4">
+            <h2 className="text-lg font-bold text-white">
+              Proposta Científica da Equipe
+            </h2>
+            {!painel ? (
+              <p className="text-xs text-gray-400">
+                Selecione ou crie uma equipe primeiro para acessar o editor de proposta.
+              </p>
+            ) : painel.situacao !== "HOMOLOGADA" ? (
+              <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200 space-y-1">
+                <p className="font-bold">
+                  Proposta bloqueada — Situação atual da equipe: {painel.situacao}
+                </p>
+                <p className="text-gray-300">
+                  A elaboração e o envio da proposta (Módulo D) são liberados assim que a inscrição da equipe for <strong>Homologada</strong>.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-xs text-gray-300">
+                  Sua equipe <strong className="text-white">{painel.nome}</strong> está homologada. Acesse o editor da proposta científica vinculada a esta equipe:
+                </p>
+                <Link
+                  href={`/proposta?equipe_id=${encodeURIComponent(painel.equipe_id)}`}
+                  className="inline-block px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors shadow-lg shadow-emerald-950/50"
+                >
+                  Abrir Editor da Proposta &rarr;
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
       </main>
     </div>
+  );
+}
+
+export default function PainelEquipePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#0A1110] flex items-center justify-center text-xs text-emerald-400">
+          Carregando painel...
+        </div>
+      }
+    >
+      <ConteudoPainelEquipe />
+    </Suspense>
   );
 }
