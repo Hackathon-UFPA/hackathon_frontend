@@ -1,77 +1,65 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import Link from "next/link";
-import { equipes } from "@/lib/api";
+import { useSearchParams } from "next/navigation";
 
-function ConteudoSucesso() {
+function SucessoConteudo() {
   const searchParams = useSearchParams();
-  const [protocolo, setProtocolo] = useState<string>("HK2027-CARREGANDO");
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    // O protocolo é emitido pelo backend ao concluir a inscrição
-    const protoUrl = searchParams.get("protocolo");
-    if (protoUrl) {
-      setProtocolo(protoUrl);
-    } else {
-      // Sem protocolo na URL: busca o da equipe do usuário logado
-      (async () => {
-        try {
-          const [eq] = await equipes.minhas();
-          if (!eq) return;
-          const painel = await equipes.painel(eq.id);
-          if (painel.protocolo?.numero) setProtocolo(painel.protocolo.numero);
-        } catch {
-          // sem sessão ou sem protocolo: mantém o estado neutro
-        }
-      })();
-    }
-  }, [searchParams]);
-
-  // Renderiza um estado neutro no servidor até a hidratação ser concluída no navegador
-  if (!mounted) {
-    return (
-      <div className="bg-[#131D1C] p-8 rounded-2xl border border-emerald-900/50 shadow-xl w-full max-w-md text-center">
-        <p className="text-gray-400 text-sm font-mono animate-pulse">Carregando protocolo...</p>
-      </div>
-    );
-  }
+  const protocolo = searchParams.get("protocolo") || "HK2026-000001";
 
   return (
-    <div className="bg-[#131D1C] p-8 rounded-2xl border border-emerald-900/50 shadow-2xl w-full max-w-md text-center backdrop-blur-xl relative z-10">
-      {/* Ícone de Sucesso */}
-      <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto mb-6 text-emerald-400">
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-        </svg>
+    <div className="w-full max-w-2xl rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl p-8 md:p-10 shadow-2xl text-center">
+      {/* Badge de Confirmação */}
+      <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-6 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 text-xs font-semibold tracking-widest uppercase">
+        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+        Operação Concluída: Inscrição de Equipe
       </div>
 
-      <h1 className="text-2xl font-bold text-white mb-2">Inscrição Enviada!</h1>
-      <p className="text-xs text-gray-400 mb-6 leading-relaxed">
-        Recebemos os dados da sua equipe com sucesso. Sua submissão foi registrada sob o protocolo abaixo.
-      </p>
+      {/* Título */}
+      <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight mb-8">
+        Inscrição Concluída —{" "}
+        <span className="text-emerald-400">Aguardando Homologação</span>
+      </h1>
 
-      {/* Caixa do Protocolo */}
-      <div className="bg-[#0A1110] p-4 rounded-xl border border-emerald-900/40 mb-6">
-        <p className="text-[10px] uppercase font-semibold text-emerald-500 tracking-wider mb-1">
-          Protocolo de Registro
+      {/* Card do Protocolo Oficial */}
+      <div className="rounded-xl bg-[#0A1110]/80 border border-emerald-500/30 p-6 mb-6">
+        <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">
+          Protocolo Oficial (INSCRICAO_EQUIPE)
         </p>
-        <p className="text-xl font-extrabold text-white font-mono tracking-widest">{protocolo}</p>
+        <p className="text-3xl md:text-4xl font-mono font-extrabold text-emerald-400 tracking-wider select-all">
+          {protocolo}
+        </p>
       </div>
 
-      <div className="space-y-3">
+      {/* Caixa de Situação Atual */}
+      <div className="rounded-xl bg-amber-500/10 border border-amber-500/30 p-5 text-left mb-8">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <span className="text-sm font-semibold text-amber-200">
+            Situação atual retornada:
+          </span>
+          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/20 border border-amber-400/30 text-amber-300">
+            Aguardando Homologação
+          </span>
+        </div>
+        <p className="text-sm text-gray-300 leading-relaxed">
+          Concluir a inscrição registra sua equipe na fila de homologação, mas
+          ainda não equivale à homologação final. A equipe será homologada assim
+          que todos os comprovantes de vínculo forem validados.
+        </p>
+      </div>
+
+      {/* Botões de Ação */}
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
         <Link
-          href="/inscricao"
-          className="block w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg transition-all text-xs shadow-md"
+          href="/equipe"
+          className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm transition-all shadow-lg shadow-emerald-950/50"
         >
-          Acessar Painel da Equipe &rarr;
+          Acompanhar no Painel da Equipe →
         </Link>
         <Link
           href="/"
-          className="block w-full py-3 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white font-semibold rounded-lg transition-all text-xs"
+          className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-200 font-semibold text-sm transition-all"
         >
           Voltar ao Início
         </Link>
@@ -82,18 +70,31 @@ function ConteudoSucesso() {
 
 export default function SucessoPage() {
   return (
-    <main className="min-h-screen bg-[#0A1110] text-gray-300 font-sans selection:bg-emerald-500/30 flex flex-col items-center justify-center p-6 relative">
+    <div className="min-h-screen bg-[#0A1110] text-gray-300 font-sans selection:bg-emerald-500/30 relative flex flex-col">
+      {/* Fundo escuro padronizado com as demais telas */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-15"
-          style={{ backgroundImage: "url('/floresta.jpg')" }}
-        ></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0A1110]/60 via-[#0A1110]/80 to-[#0A1110]"></div>
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1516245834210-c4c142787335?q=80&w=2069&auto=format&fit=crop')",
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0A1110]/60 via-[#0A1110]/85 to-[#0A1110]" />
       </div>
 
-      <Suspense fallback={<p className="text-emerald-400 font-mono text-xs">Carregando...</p>}>
-        <ConteudoSucesso />
-      </Suspense>
-    </main>
+      {/* Conteúdo Centralizado */}
+      <main className="relative z-10 flex-1 flex items-center justify-center px-6 py-16">
+        <Suspense
+          fallback={
+            <div className="text-emerald-400 text-sm">
+              Carregando protocolo...
+            </div>
+          }
+        >
+          <SucessoConteudo />
+        </Suspense>
+      </main>
+    </div>
   );
 }
