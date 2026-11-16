@@ -8,7 +8,7 @@ import type {
   SituacaoEquipe,
   StatusComprovante,
   StatusConvite,
-} from "@/lib/moduloC-api";
+} from "@/lib/api";
 
 export function formatarDataBrasilia(iso?: string | null): string {
   if (!iso) return "Data não informada";
@@ -111,7 +111,9 @@ export function BadgeSituacaoEquipe({ situacao }: { situacao: SituacaoEquipe }) 
   );
 }
 
-export function labelFuncao(funcao: FuncaoMembro): string {
+export function labelFuncao(funcao?: FuncaoMembro | null): string {
+  // A API não grava a função escolhida no convite: ela fica nula até o líder defini-la.
+  if (!funcao) return "A definir pelo líder";
   const mapa: Record<FuncaoMembro, string> = {
     LIDER: "Líder da Equipe",
     DESENVOLVEDOR: "Desenvolvedor(a)",
@@ -155,3 +157,4 @@ export function ReciboProtocolo({
     </div>
   );
 }
+

@@ -12,7 +12,7 @@ import {
   SituacaoConta,
   TermoVigente,
   UsuarioMe,
-} from "@/lib/moduloC-api";
+} from "@/lib/api";
 import {
   BadgeComprovante,
   BadgeConvite,
@@ -173,8 +173,6 @@ export function GestaoEquipe({
   const [salvandoNome, setSalvandoNome] = useState(false);
 
   const [emailConvite, setEmailConvite] = useState("");
-  const [funcaoConvite, setFuncaoConvite] =
-    useState<Exclude<FuncaoMembro, "LIDER">>("DESENVOLVEDOR");
   const [enviandoConvite, setEnviandoConvite] = useState(false);
 
   const [modalTermosAberto, setModalTermosAberto] = useState(false);
@@ -194,8 +192,9 @@ export function GestaoEquipe({
   const meuRegistro = painel.integrantes.find(
     (i) => i.usuario_id === usuario.id || i.email === usuario.email
   );
+  // `voce_e_lider` vem da API; `pode_concluir` não indica liderança.
   const souLider =
-    meuRegistro?.funcao === "LIDER" || painel.pode_concluir || usuario.papel === "DEV";
+    painel.voce_e_lider || meuRegistro?.funcao === "LIDER" || usuario.papel === "DEV";
 
   const integrantesConfirmados = painel.integrantes.filter((i) => i.integrante);
   const convitesPendentes = painel.integrantes.filter(
@@ -232,9 +231,9 @@ export function GestaoEquipe({
     setErro(null);
     setSucesso(null);
     try {
+      // A API não grava função no convite: o líder define depois do aceite, na tabela.
       await moduloCApi.convidarIntegrante(painel.equipe_id, {
         email: emailConvite.trim().toLowerCase(),
-        funcao: funcaoConvite,
       });
       setEmailConvite("");
       setSucesso("Convite enviado com sucesso.");
@@ -543,6 +542,13 @@ export function GestaoEquipe({
                     <td className="py-3 pr-3">
                       <p className="font-bold text-[#1F2421]">{item.nome || "Convidado"}</p>
                       <p className="text-[11px] text-[#5C574F]">{item.email}</p>
+                      {item.pendencias.length > 0 && (
+                        <ul className="mt-1 space-y-0.5 text-[11px] text-[#8C5E3C]">
+                          {item.pendencias.map((p, i) => (
+                            <li key={i}>• {p}</li>
+                          ))}
+                        </ul>
+                      )}
                     </td>
 
                     <td className="py-3 px-3">
@@ -550,7 +556,7 @@ export function GestaoEquipe({
                         <select
                           aria-label={`Função de ${item.nome}`}
                           disabled={acaoEmCurso === item.usuario_id}
-                          value={item.funcao}
+                          value={item.funcao ?? ""}
                           onChange={(e) =>
                             handleAlterarFuncao(
                               item.usuario_id!,
@@ -559,6 +565,9 @@ export function GestaoEquipe({
                           }
                           className="px-2 py-1 rounded border border-[#D8CFC0] bg-[#FAF8F5] text-xs font-medium"
                         >
+                          <option value="" disabled>
+                            Definir função...
+                          </option>
                           <option value="DESENVOLVEDOR">Desenvolvedor(a)</option>
                           <option value="DESIGNER">Designer</option>
                           <option value="NEGOCIOS">Negócios</option>
@@ -657,29 +666,6 @@ export function GestaoEquipe({
               />
             </div>
 
-            <div className="w-full sm:w-48">
-              <label
-                htmlFor="select-funcao-convite"
-                className="block text-[11px] font-bold uppercase tracking-wider text-[#5C574F] mb-1"
-              >
-                Função na equipe
-              </label>
-              <select
-                id="select-funcao-convite"
-                value={funcaoConvite}
-                onChange={(e) =>
-                  setFuncaoConvite(e.target.value as Exclude<FuncaoMembro, "LIDER">)
-                }
-                disabled={vagasOcupadas >= painel.max_integrantes}
-                className="w-full px-3 py-2 rounded-lg bg-[#FAF8F5] border border-[#D8CFC0] text-xs text-[#1F2421]"
-              >
-                <option value="DESENVOLVEDOR">Desenvolvedor(a)</option>
-                <option value="DESIGNER">Designer</option>
-                <option value="NEGOCIOS">Negócios</option>
-                <option value="OUTRO">Outro</option>
-              </select>
-            </div>
-
             <button
               type="submit"
               disabled={
@@ -693,6 +679,24 @@ export function GestaoEquipe({
             </button>
           </form>
         )}
+                {emFormacao && souLider && (
+          <p className="text-[11px] text-[#5C574F]">
+            O convidado precisa ter conta com esse e-mail. A função de cada integrante é definida
+            na tabela acima, depois que ele aceitar o convite.
+          </p>
+        )}
+        {emFormacao && souLider && !painel.inscricoes_abertas && (
+          <p className="text-[11px] text-[#8C5E3C]">
+            As inscrições desta edição não estão abertas agora (status ou datas da edição). Enquanto
+            isso, o servidor recusa novos convites.
+          </p>
+        )}
+        {!emFormacao && souLider && (
+          <p className="text-[11px] text-[#5C574F]">
+            A inscrição desta equipe já foi concluída. Convites, troca de função e remoção de
+            integrantes só são permitidos enquanto a equipe está em formação.
+          </p>
+        )}
       </section>
 
       {/* Checklist de Pendências e Conclusão da Inscrição */}
@@ -705,7 +709,7 @@ export function GestaoEquipe({
           {painel.pendencias.length > 0 ? (
             <div className="p-4 rounded-xl bg-[#FDF3E7] border border-[#E6CCB2] space-y-2">
               <p className="text-xs font-bold text-[#6B4F3B]">
-                Pendências que impedem a conclusão:
+                Pendências da equipe:
               </p>
               <ul className="list-disc pl-5 text-xs text-[#8C5E3C] space-y-1">
                 {painel.pendencias.map((pendencia, idx) => (
@@ -723,7 +727,7 @@ export function GestaoEquipe({
             <div className="flex justify-end">
               <button
                 type="button"
-                disabled={!painel.pode_concluir && painel.pendencias.length > 0}
+                disabled={!painel.pode_concluir}
                 onClick={() => setModalConcluirAberto(true)}
                 className="px-6 py-3 rounded-xl bg-[#1B4332] hover:bg-[#2D6A4F] text-white text-xs font-bold transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               >

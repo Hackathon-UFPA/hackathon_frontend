@@ -4,9 +4,10 @@
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ComprovanteItem,
+  enviarArquivoComprovante,
   moduloCApi,
   SituacaoConta,
-} from "@/lib/moduloC-api";
+} from "@/lib/api";
 import {
   BadgeComprovante,
   BadgeSituacaoConta,
@@ -26,6 +27,7 @@ export function ComprovanteCard({
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [novaUrl, setNovaUrl] = useState("");
+  const [arquivo, setArquivo] = useState<File | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [sucessoMsg, setSucessoMsg] = useState<string | null>(null);
 
@@ -61,19 +63,28 @@ export function ComprovanteCard({
     setSucessoMsg(null);
 
     const urlLimpa = novaUrl.trim();
-    if (!urlLimpa.startsWith("https://")) {
-      setErro("Informe um link HTTPS válido do documento hospedado (ex.: Cloudinary).");
-      return;
-    }
-    if (!/\.(pdf|png|jpe?g)$/i.test(urlLimpa.split("?")[0])) {
-      setErro("O arquivo deve terminar em .pdf, .png, .jpg ou .jpeg.");
-      return;
+    if (!arquivo) {
+      if (!urlLimpa) {
+        setErro("Selecione o arquivo do comprovante ou informe um link.");
+        return;
+      }
+      if (!urlLimpa.startsWith("https://")) {
+        setErro("Informe um link HTTPS válido do documento hospedado (ex.: Cloudinary).");
+        return;
+      }
+      if (!/\.(pdf|png|jpe?g)$/i.test(urlLimpa.split("?")[0])) {
+        setErro("O arquivo deve terminar em .pdf, .png, .jpg ou .jpeg.");
+        return;
+      }
     }
 
     setEnviando(true);
     try {
-      await moduloCApi.enviarNovoComprovante(urlLimpa);
+      // Com arquivo, o upload vai direto ao Cloudinary e a API recebe só o link.
+      const url = arquivo ? await enviarArquivoComprovante(arquivo) : urlLimpa;
+      await moduloCApi.enviarNovoComprovante(url);
       setNovaUrl("");
+      setArquivo(null);
       setSucessoMsg("Novo comprovante enviado para análise do Comitê Científico.");
       await carregar();
       if (onAtualizarUsuario) await onAtualizarUsuario();
@@ -142,7 +153,7 @@ export function ComprovanteCard({
             {maisRecente.motivo_recusa || "Documento ilegível ou inválido."}
           </p>
           <p className="text-xs text-[#7F1D1D] pt-1">
-            Envie um novo link de comprovante abaixo para nova avaliação.
+            Envie um novo comprovante abaixo para nova avaliação.
           </p>
         </div>
       )}
@@ -154,17 +165,25 @@ export function ComprovanteCard({
           className="bg-[#FAF8F5] border border-[#EDE6D6] rounded-xl p-4 space-y-3"
         >
           <label
-            htmlFor="novo-comprovante-url"
+            htmlFor="novo-comprovante-arquivo"
             className="block text-xs font-bold uppercase tracking-wider text-[#6B4F3B]"
           >
-            Reenviar Comprovante (Link HTTPS .pdf / .png / .jpg)
+            Reenviar Comprovante (PDF, PNG ou JPG, até 10 MB)
           </label>
+          <input
+            id="novo-comprovante-arquivo"
+            type="file"
+            accept="application/pdf,image/png,image/jpeg"
+            onChange={(e) => setArquivo(e.target.files?.[0] ?? null)}
+            className="block w-full text-xs text-[#5C574F] file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-[#1B4332] file:text-white file:font-bold file:cursor-pointer"
+          />
           <div className="flex flex-col sm:flex-row gap-2.5">
             <input
               id="novo-comprovante-url"
               type="url"
-              required
-              placeholder="https://res.cloudinary.com/.../comprovante.pdf"
+              aria-label="Ou informe o link HTTPS do comprovante"
+              disabled={Boolean(arquivo)}
+              placeholder="Ou cole um link: https://.../comprovante.pdf"
               value={novaUrl}
               onChange={(e) => setNovaUrl(e.target.value)}
               className="flex-1 px-3.5 py-2.5 text-sm bg-white border border-[#D8CFC0] rounded-lg text-[#1F2421] focus:outline-none focus:border-[#2D6A4F]"
@@ -178,7 +197,7 @@ export function ComprovanteCard({
             </button>
           </div>
           <p className="text-[11px] text-[#5C574F]">
-            O arquivo deve estar hospedado externamente com HTTPS e extensão .pdf, .png, .jpg ou .jpeg.
+            Envie o arquivo ou, se preferir, um link HTTPS terminado em .pdf, .png, .jpg ou .jpeg.
           </p>
         </form>
       )}
@@ -228,3 +247,4 @@ export function ComprovanteCard({
     </section>
   );
 }
+

@@ -1,7 +1,7 @@
 // app/equipe/page.tsx
 "use client";
 
-import React, { Suspense, useCallback, useEffect, useState } from "react";
+import React, { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -11,7 +11,7 @@ import {
   moduloCApi,
   PainelEquipeNormalizado,
   UsuarioMe,
-} from "@/lib/moduloC-api";
+} from "@/lib/api";
 import {
   BadgeSituacaoConta,
   BadgeSituacaoEquipe,
@@ -23,8 +23,22 @@ import {
   FormCriarEquipe,
   GestaoEquipe,
 } from "@/components/modulo-c/GestaoEquipe";
+import { ResultadoCientifico } from "@/components/modulo-d/ResultadoCientifico";
 
-type AbaPainel = "visao-geral" | "inscricao" | "convites-conta" | "proposta";
+type AbaPainel = "visao-geral" | "inscricao" | "convites-conta" | "proposta" | "resultado";
+
+/** EQP-02: com conta pendente a API recusa convites; explicamos em vez de mostrar erro. */
+function AvisoConvitesContaPendente() {
+  return (
+    <section className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-6 shadow-lg space-y-2">
+      <h2 className="text-base font-bold text-white">Convites recebidos</h2>
+      <p className="text-xs text-gray-400 leading-relaxed">
+        Os convites ficam disponíveis depois que o Comitê aprovar o seu comprovante de vínculo.
+        Acompanhe a situação do comprovante na aba <strong className="text-gray-200">Conta &amp; Convites</strong>.
+      </p>
+    </section>
+  );
+}
 
 function FundoPadrao() {
   return (
@@ -60,13 +74,22 @@ function ConteudoPainelEquipe() {
   const [carregandoPainel, setCarregandoPainel] = useState(false);
   const [erroGeral, setErroGeral] = useState<string | null>(null);
 
+  // A URL só define a equipe inicial. Ler o valor por ref evita recarregar
+  // o contexto inteiro (com a tela de carregamento) a cada troca de equipe.
+  const equipeIdUrlRef = useRef(equipeIdUrl);
+  const primeiraCarga = useRef(true);
+
   const carregarContextoBase = useCallback(async () => {
-    setCarregandoInicial(true);
+    if (primeiraCarga.current) setCarregandoInicial(true);
     setErroGeral(null);
 
     try {
       const me = await moduloCApi.obterMe();
       setUsuario(me);
+      // Conta pendente: o primeiro passo é o comprovante (EQP-01).
+      if (primeiraCarga.current && me.situacao_conta === "PENDENTE") {
+        setAbaAtiva("convites-conta");
+      }
 
       if (me.papel !== "PARTICIPANTE" && me.papel !== "DEV") {
         setErroGeral(
@@ -89,22 +112,15 @@ function ConteudoPainelEquipe() {
       setHackathons(listaHackathons);
 
       const edicaoAberta = listaHackathons.find((h) => h.status === "INSCRICOES");
-      if (edicaoAberta && !hackathonCriacaoId) {
-        setHackathonCriacaoId(edicaoAberta.id);
-      }
+      setHackathonCriacaoId((atual) => atual || edicaoAberta?.id || "");
 
-      if (equipeIdUrl && listaEquipes.some((e) => e.id === equipeIdUrl)) {
-        setEquipeSelecionadaId(equipeIdUrl);
-      } else if (listaEquipes.length === 1) {
-        setEquipeSelecionadaId(listaEquipes[0].id);
-      } else if (
-        equipeSelecionadaId &&
-        listaEquipes.some((e) => e.id === equipeSelecionadaId)
-      ) {
-        // Mantém seleção existente
-      } else {
-        setEquipeSelecionadaId("");
-      }
+      const daUrl = equipeIdUrlRef.current;
+      setEquipeSelecionadaId((atual) => {
+        if (atual && listaEquipes.some((e) => e.id === atual)) return atual;
+        if (daUrl && listaEquipes.some((e) => e.id === daUrl)) return daUrl;
+        if (listaEquipes.length === 1) return listaEquipes[0].id;
+        return "";
+      });
     } catch (err: unknown) {
       setErroGeral(
         err instanceof Error
@@ -112,9 +128,10 @@ function ConteudoPainelEquipe() {
           : "Não foi possível carregar os dados da sua sessão."
       );
     } finally {
+      primeiraCarga.current = false;
       setCarregandoInicial(false);
     }
-  }, [equipeIdUrl, equipeSelecionadaId, hackathonCriacaoId]);
+  }, []);
 
   const carregarPainelSelecionado = useCallback(async (id: string) => {
     if (!id) {
@@ -194,7 +211,7 @@ function ConteudoPainelEquipe() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A1110] text-gray-300 relative">
+      <div className="painel-vidro min-h-screen bg-[#0A1110] text-gray-300 relative">
       <FundoPadrao />
 
       {/* Barra Superior Institucional */}
@@ -336,6 +353,18 @@ function ConteudoPainelEquipe() {
             Proposta (Módulo D)
           </button>
 
+          <button
+            type="button"
+            onClick={() => setAbaAtiva("resultado")}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
+              abaAtiva === "resultado"
+                ? "bg-emerald-600 text-white shadow-md shadow-emerald-950/50"
+                : "bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 hover:text-white"
+            }`}
+          >
+            Resultado Científico
+          </button>
+
           <span
             title="Disponível após homologação científica e abertura da fase de mentoria"
             className="px-3.5 py-2 rounded-xl text-xs font-medium bg-white/[0.02] text-gray-500 border border-white/5 cursor-not-allowed"
@@ -360,10 +389,14 @@ function ConteudoPainelEquipe() {
                     setAbaAtiva("inscricao");
                   }}
                 />
-                <ConvitesRecebidos
-                  situacaoConta={usuario.situacao_conta}
-                  onConviteRespondido={carregarContextoBase}
-                />
+                {usuario.situacao_conta === "PENDENTE" ? (
+                  <AvisoConvitesContaPendente />
+                ) : (
+                  <ConvitesRecebidos
+                    situacaoConta={usuario.situacao_conta}
+                    onConviteRespondido={carregarContextoBase}
+                  />
+                )}
               </>
             ) : carregandoPainel || !painel ? (
               <p className="text-xs text-emerald-400 animate-pulse">
@@ -412,13 +445,19 @@ function ConteudoPainelEquipe() {
                     </span>
                     <div>
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-white/5 text-gray-200 border-white/15">
-                        {painel.situacao === "HOMOLOGADA"
-                          ? "Liberada para Elaboração"
-                          : "Aguardando Homologação da Equipe"}
+                        {painel.protocolo_proposta
+                          ? "Proposta Enviada"
+                          : painel.situacao === "NAO_HOMOLOGADA"
+                            ? "Bloqueada"
+                            : painel.situacao === "HOMOLOGADA"
+                              ? "Liberada para Envio"
+                              : "Rascunho Liberado"}
                       </span>
                     </div>
                     <p className="text-xs text-gray-400">
-                      O envio da proposta exige a equipe com inscrição homologada.
+                      {painel.protocolo_proposta
+                        ? `Protocolo ${painel.protocolo_proposta.numero}. O resultado aparece na aba Resultado Científico.`
+                        : "O rascunho pode ser salvo desde a formação; o envio exige a equipe homologada."}
                     </p>
                   </div>
                 </div>
@@ -429,6 +468,15 @@ function ConteudoPainelEquipe() {
                     tipo="INSCRICAO_EQUIPE"
                     numero={painel.protocolo_inscricao.numero}
                     emitidoEm={painel.protocolo_inscricao.emitido_em}
+                  />
+                )}
+
+                {/* Protocolo da Proposta (último envio) */}
+                {painel.protocolo_proposta && (
+                  <ReciboProtocolo
+                    tipo="PROPOSTA"
+                    numero={painel.protocolo_proposta.numero}
+                    emitidoEm={painel.protocolo_proposta.emitido_em}
                   />
                 )}
 
@@ -498,13 +546,17 @@ function ConteudoPainelEquipe() {
               situacaoConta={usuario.situacao_conta}
               onAtualizarUsuario={carregarContextoBase}
             />
-            <ConvitesRecebidos
-              situacaoConta={usuario.situacao_conta}
-              onConviteRespondido={async () => {
-                await carregarContextoBase();
-                setAbaAtiva("visao-geral");
-              }}
-            />
+            {usuario.situacao_conta === "PENDENTE" ? (
+              <AvisoConvitesContaPendente />
+            ) : (
+              <ConvitesRecebidos
+                situacaoConta={usuario.situacao_conta}
+                onConviteRespondido={async () => {
+                  await carregarContextoBase();
+                  setAbaAtiva("visao-geral");
+                }}
+              />
+            )}
           </div>
         )}
 
@@ -518,19 +570,22 @@ function ConteudoPainelEquipe() {
               <p className="text-xs text-gray-400">
                 Selecione ou crie uma equipe primeiro para acessar o editor de proposta.
               </p>
-            ) : painel.situacao !== "HOMOLOGADA" ? (
+            ) : painel.situacao === "NAO_HOMOLOGADA" ? (
               <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200 space-y-1">
                 <p className="font-bold">
                   Proposta bloqueada — Situação atual da equipe: {painel.situacao}
                 </p>
                 <p className="text-gray-300">
-                  A elaboração e o envio da proposta (Módulo D) são liberados assim que a inscrição da equipe for <strong>Homologada</strong>.
+                  Equipes não homologadas não podem criar, editar nem enviar proposta.
                 </p>
               </div>
             ) : (
               <div className="space-y-3">
                 <p className="text-xs text-gray-300">
-                  Sua equipe <strong className="text-white">{painel.nome}</strong> está homologada. Acesse o editor da proposta científica vinculada a esta equipe:
+                  {painel.situacao === "HOMOLOGADA"
+                    ? "Sua equipe está homologada e pode enviar a proposta."
+                    : "O líder já pode preencher e salvar o rascunho. O envio definitivo é liberado quando a equipe estiver HOMOLOGADA."}{" "}
+                  Equipe: <strong className="text-white">{painel.nome}</strong>.
                 </p>
                 <Link
                   href={`/proposta?equipe_id=${encodeURIComponent(painel.equipe_id)}`}
@@ -542,6 +597,16 @@ function ConteudoPainelEquipe() {
             )}
           </div>
         )}
+
+        {/* ABA 5: RESULTADO CIENTÍFICO PRIVADO (PRO-04) */}
+        {abaAtiva === "resultado" &&
+          (painel ? (
+            <ResultadoCientifico key={painel.equipe_id} equipeId={painel.equipe_id} />
+          ) : (
+            <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-6 text-xs text-gray-400">
+              Selecione ou crie uma equipe para consultar o resultado.
+            </div>
+          ))}
       </main>
     </div>
   );

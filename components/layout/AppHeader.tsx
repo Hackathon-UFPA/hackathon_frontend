@@ -40,11 +40,13 @@ export default function AppHeader() {
     };
   }, []);
 
+  // Mesmo critério das páginas: /admin aceita Organizador, Comitê Científico e DEV;
+  // /inscricao aceita Participante. Outros perfis ainda não têm painel no front.
   const ehOrganizador =
     usuario?.papel === "ORGANIZADOR" ||
     usuario?.papel === "COMITE_CIENTIFICO" ||
-    usuario?.papel === "COMITE_TECNICO" ||
     usuario?.papel === "DEV";
+  const temPainel = ehOrganizador || usuario?.papel === "PARTICIPANTE";
 
   const sair = () => {
     auth.logout();
@@ -107,12 +109,14 @@ export default function AppHeader() {
               <div className="w-32 h-9 rounded-lg bg-white/5 animate-pulse" />
             ) : usuario ? (
               <>
+{temPainel && (
                 <Link
                   href={ehOrganizador ? "/admin" : "/inscricao"}
                   className="inline-flex items-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-xs font-bold text-emerald-300 transition-colors hover:border-emerald-400/50 hover:bg-emerald-500/20 hover:text-emerald-200"
                 >
                   {ehOrganizador ? "Painel" : "Minha Equipe"}
                 </Link>
+                )}
 
                 <button
                   type="button"
@@ -191,6 +195,7 @@ export default function AppHeader() {
             <div className="mt-3 pt-3 border-t border-white/10 flex flex-col gap-2">
               {carregando ? null : usuario ? (
                 <>
+{temPainel && (
                   <Link
                     href={ehOrganizador ? "/admin" : "/inscricao"}
                     onClick={() => setMenuAberto(false)}
@@ -198,6 +203,7 @@ export default function AppHeader() {
                   >
                     {ehOrganizador ? "Painel" : "Minha Equipe"}
                   </Link>
+                  )}
 
                   <button
                     type="button"
@@ -233,3 +239,4 @@ export default function AppHeader() {
     </header>
   );
 }
+
