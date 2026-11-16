@@ -8,7 +8,7 @@ import {
   moduloCApi,
   SituacaoConta,
   TermoVigente,
-} from "@/lib/moduloC-api";
+} from "@/lib/api";
 import {
   BadgeConvite,
   formatarDataBrasilia,

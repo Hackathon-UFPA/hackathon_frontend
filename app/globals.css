@@ -25,3 +25,77 @@ html.large-text {
     scrollbar-width: none;
   }
 }
+
+/* ───────────────── PAINEL DO PARTICIPANTE: TEMA ESCURO "VIDRO" ─────────────────
+   Os componentes de components/modulo-c usam a paleta clara (areia/off-white).
+   Dentro de .painel-vidro (app/equipe/page.tsx) remapeamos essas cores para o tema
+   escuro do site, com cartões translúcidos em verde. Fora dele, nada muda. */
+
+/* Cartões (vidro) */
+.painel-vidro .bg-white {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(255, 255, 255, 0.03));
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border-color: rgba(52, 211, 153, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+/* Janelas de diálogo: mais opacas para leitura */
+.painel-vidro [role="dialog"] .bg-white {
+  background: rgba(19, 29, 28, 0.96);
+}
+
+/* Fundos internos (campos, caixas e recibos) */
+.painel-vidro .bg-\[\#FAF8F5\] { background-color: rgba(10, 17, 16, 0.6); }
+.painel-vidro .bg-\[\#EDE6D6\] { background-color: rgba(255, 255, 255, 0.08); }
+.painel-vidro .bg-\[\#F5EFE6\],
+.painel-vidro .bg-\[\#F1EFEA\] { background-color: rgba(255, 255, 255, 0.06); }
+
+/* Tons de situação */
+.painel-vidro .bg-\[\#E6F4EA\] { background-color: rgba(16, 185, 129, 0.12); }
+.painel-vidro .bg-\[\#FDF3E7\] { background-color: rgba(245, 158, 11, 0.12); }
+.painel-vidro .bg-\[\#FDECEA\] { background-color: rgba(239, 68, 68, 0.12); }
+
+/* Bordas */
+.painel-vidro .border-\[\#D8CFC0\],
+.painel-vidro .border-\[\#EDE6D6\] { border-color: rgba(255, 255, 255, 0.12); }
+.painel-vidro .border-\[\#95D5B2\],
+.painel-vidro .border-\[\#74C69D\] { border-color: rgba(16, 185, 129, 0.4); }
+.painel-vidro .border-\[\#E6CCB2\] { border-color: rgba(245, 158, 11, 0.35); }
+.painel-vidro .border-\[\#F5C2C7\] { border-color: rgba(239, 68, 68, 0.35); }
+.painel-vidro .border-\[\#2D6A4F\] { border-color: #10b981; }
+.painel-vidro .divide-\[\#EDE6D6\] > * { border-color: rgba(255, 255, 255, 0.08); }
+
+/* Textos */
+.painel-vidro .text-\[\#1B4332\] { color: #6ee7b7; }
+.painel-vidro .text-\[\#2D6A4F\] { color: #34d399; }
+.painel-vidro .text-\[\#5C574F\],
+.painel-vidro .text-\[\#7A746B\] { color: #9ca3af; }
+.painel-vidro .text-\[\#3D3A35\],
+.painel-vidro .text-\[\#1F2421\] { color: #e5e7eb; }
+.painel-vidro .text-\[\#6B4F3B\],
+.painel-vidro .text-\[\#8C5E3C\],
+.painel-vidro .text-\[\#9C6644\] { color: #fcd34d; }
+.painel-vidro .text-\[\#9B2226\],
+.painel-vidro .text-\[\#7F1D1D\] { color: #fca5a5; }
+
+/* Botões */
+.painel-vidro .bg-\[\#1B4332\],
+.painel-vidro .bg-\[\#2D6A4F\] { background-color: #059669; }
+.painel-vidro .bg-\[\#8C5E3C\] { background-color: #b45309; }
+.painel-vidro .hover\:bg-\[\#2D6A4F\]:hover,
+.painel-vidro .hover\:bg-\[\#1B4332\]:hover { background-color: #10b981; }
+.painel-vidro .hover\:bg-\[\#6B4F3B\]:hover { background-color: #92400e; }
+.painel-vidro .hover\:bg-\[\#EDE6D6\]:hover { background-color: rgba(255, 255, 255, 0.1); }
+.painel-vidro .hover\:bg-\[\#FAF8F5\]:hover { background-color: rgba(255, 255, 255, 0.08); }
+.painel-vidro .hover\:bg-\[\#FDECEA\]:hover { background-color: rgba(239, 68, 68, 0.15); }
+.painel-vidro .hover\:text-\[\#9B2226\]:hover { color: #fca5a5; }
+.painel-vidro .hover\:border-\[\#F5C2C7\]:hover { border-color: rgba(239, 68, 68, 0.5); }
+.painel-vidro .focus\:border-\[\#2D6A4F\]:focus { border-color: #10b981; }
+.painel-vidro .file\:bg-\[\#1B4332\]::file-selector-button { background-color: #059669; }
+.painel-vidro .accent-\[\#1B4332\] { accent-color: #10b981; }
+
+/* Listas suspensas legíveis no tema escuro */
+.painel-vidro select option {
+  background-color: #0a1110;
+  color: #e5e7eb;
+}
