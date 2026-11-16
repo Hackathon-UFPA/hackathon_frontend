@@ -1,440 +1,369 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import {
+  admin,
+  ApiError,
+  hackathons as hackathonsApi,
+  termos as termosApi,
+  type HackathonDados,
+  type HackathonResponse,
+  type StatusHackathon,
+  type Termo,
+} from "@/lib/api";
+import { useSession } from "@/lib/useSession";
 
-interface HackathonItem {
-  id: string;
+/**
+ * Gestão da edição (somente Organizador ou DEV, regra da API).
+ * Usa POST/PATCH /admin/hackathons. A API não tem rota para publicar termos:
+ * aqui só conferimos se o regulamento e o termo de consentimento vigentes existem.
+ */
+
+const STATUS: { valor: StatusHackathon; rotulo: string }[] = [
+  { valor: "RASCUNHO", rotulo: "Rascunho" },
+  { valor: "INSCRICOES", rotulo: "Inscrições abertas" },
+  { valor: "INSCRICOES_ENCERRADAS", rotulo: "Inscrições encerradas" },
+  { valor: "ATIVO", rotulo: "Ativo" },
+  { valor: "EM_AVALIACAO", rotulo: "Em avaliação" },
+  { valor: "FINALIZADO", rotulo: "Finalizado" },
+  { valor: "CANCELADO", rotulo: "Cancelado" },
+];
+
+const CAMPOS_DATA = [
+  { campo: "inscricoes_inicio", rotulo: "Início das inscrições" },
+  { campo: "inscricoes_fim", rotulo: "Fim das inscrições" },
+  { campo: "homologacao_fim", rotulo: "Fim da homologação" },
+  { campo: "propostas_inicio", rotulo: "Início das propostas" },
+  { campo: "propostas_fim", rotulo: "Fim das propostas" },
+  { campo: "data_inicio", rotulo: "Início do evento" },
+  { campo: "data_fim", rotulo: "Fim do evento" },
+] as const;
+
+type CampoData = (typeof CAMPOS_DATA)[number]["campo"];
+
+type Form = {
   nome: string;
-  status: string;
-  min_integrantes?: number;
-  max_integrantes?: number;
+  tema: string;
+  status: StatusHackathon;
+  min_integrantes: string;
+  max_integrantes: string;
+  avaliadores_por_proposta: string;
+} & Record<CampoData, string>;
+
+const FORM_VAZIO: Form = {
+  nome: "",
+  tema: "",
+  status: "INSCRICOES",
+  min_integrantes: "3",
+  max_integrantes: "5",
+  avaliadores_por_proposta: "",
+  inscricoes_inicio: "",
+  inscricoes_fim: "",
+  homologacao_fim: "",
+  propostas_inicio: "",
+  propostas_fim: "",
+  data_inicio: "",
+  data_fim: "",
+};
+
+const inp =
+  "w-full bg-[#0A1110] border border-gray-700 rounded-lg p-2.5 text-white focus:border-emerald-500 focus:outline-none text-sm";
+const lbl = "block text-[11px] uppercase text-gray-400 mb-1 font-semibold";
+
+/** ISO (UTC) -> valor de <input type="datetime-local"> no fuso do navegador. */
+function isoParaLocal(iso?: string | null): string {
+  if (!iso) return "";
+  // A API grava em UTC; se vier sem fuso, trata como UTC.
+  const comFuso = /[zZ]|[+-]\d\d:?\d\d$/.test(iso) ? iso : `${iso}Z`;
+  const d = new Date(comFuso);
+  if (Number.isNaN(d.getTime())) return "";
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
-interface TermoItem {
-  id: string;
-  tipo: string;
-  titulo: string;
-  versao: string;
+/** Valor de datetime-local (hora local) -> ISO em UTC, ou null se vazio. */
+function localParaIso(valor: string): string | null {
+  if (!valor) return null;
+  const d = new Date(valor);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
 }
 
-interface SessaoUsuario {
-  id?: string;
-  email?: string;
-  papel?: string;
-  situacao_conta?: string;
-}
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api-backend";
-
-function obterToken(): string | null {
-  if (typeof window === "undefined") return null;
-
-  const chavesDiretas = ["token", "access_token", "auth_token", "jwt"];
-  for (const chave of chavesDiretas) {
-    const val = localStorage.getItem(chave) || sessionStorage.getItem(chave);
-    if (val && val.startsWith("eyJ") && val.split(".").length === 3) return val;
-  }
-
-  for (const storage of [localStorage, sessionStorage]) {
-    for (let i = 0; i < storage.length; i++) {
-      const key = storage.key(i);
-      if (!key) continue;
-      const val = storage.getItem(key);
-      if (!val) continue;
-      if (val.startsWith("eyJ") && val.split(".").length === 3) return val;
-      try {
-        const parsed = JSON.parse(val);
-        const candidato =
-          parsed?.token ||
-          parsed?.access_token ||
-          parsed?.accessToken ||
-          parsed?.jwt ||
-          parsed?.session?.access_token ||
-          parsed?.state?.token;
-        if (typeof candidato === "string" && candidato.startsWith("eyJ")) {
-          return candidato;
-        }
-      } catch {
-        // Ignora valores não-JSON
-      }
-    }
-  }
-  return null;
-}
-
-function criarHeaders(token: string | null): Record<string, string> {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
+function paraForm(h: HackathonResponse): Form {
+  return {
+    nome: h.nome ?? "",
+    tema: h.tema ?? "",
+    status: h.status ?? "INSCRICOES",
+    min_integrantes: String(h.min_integrantes ?? 3),
+    max_integrantes: String(h.max_integrantes ?? 5),
+    avaliadores_por_proposta: h.avaliadores_por_proposta ? String(h.avaliadores_por_proposta) : "",
+    inscricoes_inicio: isoParaLocal(h.inscricoes_inicio),
+    inscricoes_fim: isoParaLocal(h.inscricoes_fim),
+    homologacao_fim: isoParaLocal(h.homologacao_fim),
+    propostas_inicio: isoParaLocal(h.propostas_inicio),
+    propostas_fim: isoParaLocal(h.propostas_fim),
+    data_inicio: isoParaLocal(h.data_inicio),
+    data_fim: isoParaLocal(h.data_fim),
   };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-  return headers;
 }
 
-async function extrairErroDetalhado(res: Response, endpoint: string): Promise<string> {
-  let detalhe = "";
-  try {
-    const data = await res.json();
-    if (typeof data.detail === "string") {
-      detalhe = data.detail;
-    } else if (Array.isArray(data.detail)) {
-      detalhe = data.detail
-        .map((e: { loc?: string[]; msg?: string }) => {
-          const campo = Array.isArray(e.loc) ? e.loc[e.loc.length - 1] : "campo";
-          return `${campo}: ${e.msg}`;
-        })
-        .join(" | ");
-    } else if (data.message) {
-      detalhe = data.message;
-    }
-  } catch {
-    // Sem corpo JSON
-  }
-  return `[HTTP ${res.status} em ${endpoint}] ${detalhe || "Sem detalhe retornado pelo servidor."}`;
+function paraPayload(f: Form): HackathonDados {
+  const dados: HackathonDados = {
+    nome: f.nome.trim() || null,
+    tema: f.tema.trim() || null,
+    status: f.status,
+    min_integrantes: Number(f.min_integrantes),
+    max_integrantes: Number(f.max_integrantes),
+    avaliadores_por_proposta: f.avaliadores_por_proposta ? Number(f.avaliadores_por_proposta) : null,
+  };
+  for (const { campo } of CAMPOS_DATA) dados[campo] = localParaIso(f[campo]);
+  return dados;
 }
+
+const msgErro = (e: unknown) => {
+  if (e instanceof ApiError && e.status === 403) {
+    return "Somente o Organizador (ou DEV) pode criar e editar a edição.";
+  }
+  return e instanceof Error ? e.message : "Erro inesperado.";
+};
 
 export default function AdminHackathonPage() {
-  const [usuarioAtual, setUsuarioAtual] = useState<SessaoUsuario | null>(null);
-  const [erroSessao, setErroSessao] = useState<string | null>(null);
-  const [hackathons, setHackathons] = useState<HackathonItem[]>([]);
-  const [termos, setTermos] = useState<TermoItem[]>([]);
-  const [carregandoLista, setCarregandoLista] = useState(true);
+  const { pronto } = useSession(["ORGANIZADOR"]);
+
+  const [lista, setLista] = useState<HackathonResponse[]>([]);
+  const [selecionadoId, setSelecionadoId] = useState<string>(""); // "" = nova edição
+  const [form, setForm] = useState<Form>(FORM_VAZIO);
+  const [termosVigentes, setTermosVigentes] = useState<Termo[] | null>(null);
+
+  const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
-  const [publicandoTermos, setPublicandoTermos] = useState(false);
   const [mensagem, setMensagem] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
 
-  const [form, setForm] = useState({
-    nome: "Hackathon IA Amazônia 2027",
-    min_integrantes: 3,
-    max_integrantes: 5,
-    status: "INSCRICOES",
-  });
-
-  const carregarDados = useCallback(async () => {
-    setCarregandoLista(true);
-    setErroSessao(null);
-    const token = obterToken();
-    const headers = criarHeaders(token);
-
+  const carregar = useCallback(async (manterId?: string) => {
+    setCarregando(true);
+    setErro(null);
     try {
-      const [resMe, resHack, resTermos] = await Promise.all([
-        fetch(`${API_BASE}/auth/me`, { headers, credentials: "include" }).catch(() => null),
-        fetch(`${API_BASE}/hackathons`, { headers, credentials: "include" }).catch(() => null),
-        fetch(`${API_BASE}/termos/vigentes`, { headers, credentials: "include" }).catch(() => null),
-      ]);
-
-      if (resMe && resMe.ok) {
-        const me = await resMe.json();
-        setUsuarioAtual(me);
+      const edicoes = await hackathonsApi.listar();
+      setLista(edicoes);
+      const alvo =
+        edicoes.find((h) => h.id === manterId) ??
+        edicoes.find((h) => h.status === "INSCRICOES") ??
+        edicoes[0];
+      if (alvo) {
+        setSelecionadoId(alvo.id);
+        setForm(paraForm(alvo));
       } else {
-        setUsuarioAtual(null);
-        const statusMe = resMe ? `HTTP ${resMe.status}` : "sem resposta";
-        setErroSessao(
-          `Sessão não reconhecida pelo /auth/me (${statusMe}). Token no storage: ${token ? "encontrado" : "ausente"}.`
-        );
+        setSelecionadoId("");
+        setForm(FORM_VAZIO);
       }
-
-      if (resHack && resHack.ok) {
-        const raw = await resHack.json();
-        setHackathons(Array.isArray(raw) ? raw : raw?.items || []);
-      }
-
-      if (resTermos && resTermos.ok) {
-        const rawT = await resTermos.json();
-        setTermos(Array.isArray(rawT) ? rawT : rawT?.items || []);
-      }
+    } catch (e) {
+      setErro(msgErro(e));
     } finally {
-      setCarregandoLista(false);
+      setCarregando(false);
     }
   }, []);
 
   useEffect(() => {
-    carregarDados();
-  }, [carregarDados]);
+    if (pronto) carregar();
+  }, [pronto, carregar]);
 
-  const handleCriarHackathon = async (e: React.FormEvent) => {
+  // Confere se a edição selecionada tem os termos vigentes (sem eles o cadastro responde 409).
+  useEffect(() => {
+    setTermosVigentes(null);
+    if (!selecionadoId) return;
+    let ativo = true;
+    termosApi
+      .vigentes(selecionadoId)
+      .then((t) => ativo && setTermosVigentes(t))
+      .catch(() => ativo && setTermosVigentes([]));
+    return () => {
+      ativo = false;
+    };
+  }, [selecionadoId]);
+
+  const selecionar = (id: string) => {
+    setMensagem(null);
+    setErro(null);
+    setSelecionadoId(id);
+    const h = lista.find((x) => x.id === id);
+    setForm(h ? paraForm(h) : FORM_VAZIO);
+  };
+
+  const set = (campo: keyof Form, valor: string) => setForm((f) => ({ ...f, [campo]: valor }));
+
+  const salvar = async (e: React.FormEvent) => {
     e.preventDefault();
     setSalvando(true);
     setMensagem(null);
     setErro(null);
-
-    const token = obterToken();
-    const headers = criarHeaders(token);
-    const payload = JSON.stringify({
-      nome: form.nome.trim(),
-      min_integrantes: Number(form.min_integrantes),
-      max_integrantes: Number(form.max_integrantes),
-      status: form.status,
-    });
-
     try {
-      const endpoint = `${API_BASE}/admin/hackathons`;
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers,
-        credentials: "include",
-        body: payload,
-      });
-
-      if (!res.ok) {
-        throw new Error(await extrairErroDetalhado(res, `POST ${endpoint}`));
-      }
-
-      const criado = await res.json();
-      setMensagem(`Edição "${criado.nome || form.nome}" criada com status ${criado.status || form.status}!`);
-      await carregarDados();
-    } catch (err: unknown) {
-      setErro(err instanceof Error ? err.message : "Falha ao criar a edição do Hackathon.");
+      const dados = paraPayload(form);
+      const salvo = selecionadoId
+        ? await admin.editarHackathon(selecionadoId, dados)
+        : await admin.criarHackathon(dados);
+      setMensagem(selecionadoId ? "Edição atualizada." : "Edição criada.");
+      await carregar(salvo.id);
+    } catch (err) {
+      setErro(msgErro(err));
     } finally {
       setSalvando(false);
     }
   };
 
-  const handleAlterarStatus = async (hackathonId: string, novoStatus: string) => {
-    setSalvando(true);
-    setMensagem(null);
-    setErro(null);
+  if (!pronto) return null;
 
-    const token = obterToken();
-    const endpoint = `${API_BASE}/admin/hackathons/${hackathonId}`;
-
-    try {
-      const res = await fetch(endpoint, {
-        method: "PATCH",
-        headers: criarHeaders(token),
-        credentials: "include",
-        body: JSON.stringify({ status: novoStatus }),
-      });
-
-      if (!res.ok) {
-        throw new Error(await extrairErroDetalhado(res, `PATCH ${endpoint}`));
-      }
-
-      setMensagem(`Status atualizado para "${novoStatus}" com sucesso!`);
-      await carregarDados();
-    } catch (err: unknown) {
-      setErro(err instanceof Error ? err.message : "Erro ao atualizar status.");
-    } finally {
-      setSalvando(false);
-    }
-  };
-
-  const handlePublicarTermosPadrao = async () => {
-    setPublicandoTermos(true);
-    setMensagem(null);
-    setErro(null);
-
-    const hackathonAtivo = hackathons.find((h) => h.status === "INSCRICOES") || hackathons[0];
-    if (!hackathonAtivo) {
-      setErro("Crie ou abra uma edição do Hackathon antes de publicar os termos.");
-      setPublicandoTermos(false);
-      return;
-    }
-
-    const token = obterToken();
-    const endpoint = `${API_BASE}/admin/termos`;
-
-    try {
-      const payloads = [
-        {
-          hackathon_id: hackathonAtivo.id,
-          tipo: "REGULAMENTO",
-          titulo: "Regulamento Oficial - Hackathon IA Amazônia 2027",
-          versao: "1.0",
-          conteudo: "Regras gerais de participação, formação de equipes, propriedade intelectual e critérios de avaliação.",
-        },
-        {
-          hackathon_id: hackathonAtivo.id,
-          tipo: "TERMO_CONSENTIMENTO",
-          titulo: "Termo de Consentimento e Privacidade (LGPD)",
-          versao: "1.0",
-          conteudo: "Autorização para tratamento de dados pessoais exclusivamente para fins de inscrição e credenciamento no evento.",
-        },
-      ];
-
-      for (const item of payloads) {
-        const res = await fetch(endpoint, {
-          method: "POST",
-          headers: criarHeaders(token),
-          credentials: "include",
-          body: JSON.stringify(item),
-        });
-
-        if (!res.ok) {
-          throw new Error(await extrairErroDetalhado(res, `POST ${endpoint}`));
-        }
-      }
-
-      setMensagem("Regulamento e Termo de Consentimento publicados com sucesso!");
-      await carregarDados();
-    } catch (err: unknown) {
-      setErro(err instanceof Error ? err.message : "Erro ao publicar os termos.");
-    } finally {
-      setPublicandoTermos(false);
-    }
-  };
+  const tiposVigentes = new Set((termosVigentes ?? []).map((t) => t.tipo));
+  const termosOk = tiposVigentes.has("REGULAMENTO") && tiposVigentes.has("TERMO_CONSENTIMENTO");
 
   return (
-    <main className="min-h-screen bg-[#0A1110] text-gray-300 p-6 flex justify-center">
-      <div className="w-full max-w-2xl space-y-6">
-        <div className="bg-[#131D1C] p-6 rounded-2xl border border-emerald-900/50 shadow-lg">
-          <Link href="/admin" className="text-xs text-emerald-500 hover:text-emerald-400 font-semibold mb-4 inline-block">
-            &larr; Voltar ao painel
-          </Link>
+    <main className="min-h-screen bg-[#0A1110] text-gray-300 p-6 flex justify-center selection:bg-emerald-500/30">
+      <div className="w-full max-w-2xl bg-[#131D1C] p-8 rounded-2xl border border-emerald-900/50 shadow-lg h-fit space-y-6">
+        <Link href="/admin" className="text-xs text-emerald-500 hover:text-emerald-400 font-semibold inline-block">
+          &larr; Voltar ao Painel Admin
+        </Link>
 
+        <div>
           <h1 className="text-2xl font-bold text-white mb-1">Gerenciar Edição do Hackathon</h1>
-          <p className="text-xs text-gray-400 mb-4">
-            Crie a edição no servidor e deixe o status em <strong className="text-emerald-400">INSCRICOES</strong> para liberar o cadastro de participantes.
+          <p className="text-xs text-gray-400">
+            Datas no seu fuso horário; a API grava em UTC. Para encerrar uma edição com dados, use o status{" "}
+            <span className="font-mono">CANCELADO</span>.
           </p>
+        </div>
 
-          {/* Status da Sessão Atual */}
-          {usuarioAtual ? (
-            <div className="mb-4 p-3 bg-emerald-950/50 border border-emerald-800/60 rounded-lg text-xs font-mono text-emerald-300">
-              Sessão ativa: <strong>{usuarioAtual.email}</strong> | Papel: <strong>{usuarioAtual.papel}</strong> | Conta: <strong>{usuarioAtual.situacao_conta}</strong>
-            </div>
-          ) : erroSessao ? (
-            <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-xs font-mono text-amber-300">
-              {erroSessao}
-            </div>
-          ) : null}
-
-          {mensagem && (
-            <div className="mb-4 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-emerald-400 text-xs font-mono">
-              {mensagem}
-            </div>
-          )}
-
-          {erro && (
-            <div className="mb-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-xs font-mono">
-              {erro}
-            </div>
-          )}
-
-          {/* Edições já cadastradas */}
-          <div className="mb-6">
-            <h2 className="text-xs uppercase tracking-wider text-gray-400 font-semibold mb-3">
-              Edições Cadastradas no Banco
-            </h2>
-            {carregandoLista ? (
-              <p className="text-xs text-gray-500">Carregando edições...</p>
-            ) : hackathons.length === 0 ? (
-              <p className="text-xs text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
-                Nenhuma edição cadastrada ainda. Use o formulário abaixo para criar a primeira.
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {hackathons.map((h) => (
-                  <div
-                    key={h.id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#0A1110] border border-gray-800 rounded-lg p-3"
-                  >
-                    <div>
-                      <p className="text-sm font-semibold text-white">{h.nome}</p>
-                      <p className="text-xs text-gray-400 font-mono">
-                        Status: <span className="text-emerald-400 font-bold">{h.status}</span> | Equipe: {h.min_integrantes ?? 3}–{h.max_integrantes ?? 5}
-                      </p>
-                    </div>
-                    {h.status !== "INSCRICOES" && (
-                      <button
-                        type="button"
-                        disabled={salvando}
-                        onClick={() => handleAlterarStatus(h.id, "INSCRICOES")}
-                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg cursor-pointer"
-                      >
-                        Abrir Inscrições
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+        {mensagem && (
+          <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-emerald-400 text-xs">
+            {mensagem}
           </div>
+        )}
+        {erro && (
+          <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-xs">{erro}</div>
+        )}
 
-          {/* Formulário de Criação */}
-          <form onSubmit={handleCriarHackathon} className="space-y-4 border-t border-gray-800 pt-5">
-            <h2 className="text-xs uppercase tracking-wider text-gray-400 font-semibold">
-              Criar Nova Edição
-            </h2>
-
+        {carregando ? (
+          <p className="text-emerald-400 text-sm font-mono">Carregando edições...</p>
+        ) : (
+          <>
             <div>
-              <label className="block text-xs uppercase text-gray-400 mb-1 font-semibold">Nome da Edição *</label>
-              <input
-                required
-                type="text"
-                className="w-full bg-[#0A1110] border border-gray-700 rounded-lg p-3 text-white focus:border-emerald-500 focus:outline-none text-sm"
-                value={form.nome}
-                onChange={(e) => setForm({ ...form, nome: e.target.value })}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs uppercase text-gray-400 mb-1 font-semibold">Mín. Integrantes</label>
-                <input
-                  type="number"
-                  min={1}
-                  className="w-full bg-[#0A1110] border border-gray-700 rounded-lg p-3 text-white focus:border-emerald-500 focus:outline-none text-sm"
-                  value={form.min_integrantes}
-                  onChange={(e) => setForm({ ...form, min_integrantes: Number(e.target.value) })}
-                />
-              </div>
-              <div>
-                <label className="block text-xs uppercase text-gray-400 mb-1 font-semibold">Máx. Integrantes</label>
-                <input
-                  type="number"
-                  min={1}
-                  className="w-full bg-[#0A1110] border border-gray-700 rounded-lg p-3 text-white focus:border-emerald-500 focus:outline-none text-sm"
-                  value={form.max_integrantes}
-                  onChange={(e) => setForm({ ...form, max_integrantes: Number(e.target.value) })}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs uppercase text-gray-400 mb-1 font-semibold">Status Inicial</label>
-              <select
-                className="w-full bg-[#0A1110] border border-gray-700 rounded-lg p-3 text-white focus:border-emerald-500 focus:outline-none text-sm"
-                value={form.status}
-                onChange={(e) => setForm({ ...form, status: e.target.value })}
-              >
-                <option value="INSCRICOES">INSCRICOES (Aberto)</option>
-                <option value="RASCUNHO">RASCUNHO</option>
-                <option value="ENCERRADO">ENCERRADO</option>
+              <label className={lbl} htmlFor="sel-edicao">
+                Edição
+              </label>
+              <select id="sel-edicao" className={inp} value={selecionadoId} onChange={(e) => selecionar(e.target.value)}>
+                {lista.map((h) => (
+                  <option key={h.id} value={h.id}>
+                    {h.nome || "Sem nome"} ({h.status ?? "—"})
+                  </option>
+                ))}
+                <option value="">+ Nova edição</option>
               </select>
             </div>
 
-            <button
-              type="submit"
-              disabled={salvando}
-              className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg transition-all text-sm cursor-pointer"
-            >
-              {salvando ? "Salvando no servidor..." : "Criar Edição no Servidor"}
-            </button>
-          </form>
-
-          {/* Termos Vigentes */}
-          <div className="border-t border-gray-800 pt-5 mt-6">
-            <div className="flex items-center justify-between gap-3 mb-2">
-              <h2 className="text-xs uppercase tracking-wider text-gray-400 font-semibold">
-                Termos Vigentes ({termos.length}/2)
-              </h2>
-              <button
-                type="button"
-                disabled={publicandoTermos || hackathons.length === 0}
-                onClick={handlePublicarTermosPadrao}
-                className="px-3 py-1.5 bg-emerald-900/60 hover:bg-emerald-800 border border-emerald-700/60 text-emerald-300 text-xs font-semibold rounded-lg cursor-pointer disabled:opacity-40"
+            {selecionadoId && termosVigentes !== null && (
+              <div
+                className={`p-3 rounded-lg text-xs border ${
+                  termosOk
+                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
+                    : "bg-amber-500/10 border-amber-500/30 text-amber-300"
+                }`}
               >
-                {publicandoTermos ? "Publicando..." : "Publicar Regulamento e Consentimento"}
+                {termosOk
+                  ? "Regulamento e termo de consentimento vigentes cadastrados."
+                  : "Faltam termos vigentes (regulamento e/ou termo de consentimento). Sem eles o cadastro de participantes responde 409. A API não publica termos: eles precisam ser cadastrados no banco."}
+              </div>
+            )}
+
+            <form onSubmit={salvar} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className={lbl}>Nome</label>
+                  <input className={inp} maxLength={255} value={form.nome} onChange={(e) => set("nome", e.target.value)} />
+                </div>
+                <div>
+                  <label className={lbl}>Tema geral da edição (só texto)</label>
+                  <input className={inp} maxLength={255} value={form.tema} onChange={(e) => set("tema", e.target.value)} />
+                  {selecionadoId && (
+                    <Link
+                      href={`/admin/temas?hackathon_id=${encodeURIComponent(selecionadoId)}`}
+                      className="text-[11px] text-emerald-400 hover:underline mt-1 inline-block"
+                    >
+                      Temas que o participante escolhe na proposta &rarr;
+                    </Link>
+                  )}
+                </div>
+                <div>
+                  <label className={lbl}>Status</label>
+                  <select
+                    className={inp}
+                    value={form.status}
+                    onChange={(e) => set("status", e.target.value as StatusHackathon)}
+                  >
+                    {STATUS.map((s) => (
+                      <option key={s.valor} value={s.valor}>
+                        {s.rotulo}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className={lbl}>Avaliadores por proposta</label>
+                  <select
+                    className={inp}
+                    value={form.avaliadores_por_proposta}
+                    onChange={(e) => set("avaliadores_por_proposta", e.target.value)}
+                  >
+                    <option value="">Não definido</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={lbl}>Mínimo de integrantes</label>
+                  <input
+                    type="number"
+                    min={1}
+                    required
+                    className={inp}
+                    value={form.min_integrantes}
+                    onChange={(e) => set("min_integrantes", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className={lbl}>Máximo de integrantes</label>
+                  <input
+                    type="number"
+                    min={1}
+                    required
+                    className={inp}
+                    value={form.max_integrantes}
+                    onChange={(e) => set("max_integrantes", e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {CAMPOS_DATA.map(({ campo, rotulo }) => (
+                  <div key={campo}>
+                    <label className={lbl}>{rotulo}</label>
+                    <input
+                      type="datetime-local"
+                      className={inp}
+                      value={form[campo]}
+                      onChange={(e) => set(campo, e.target.value)}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <button
+                type="submit"
+                disabled={salvando}
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-lg text-sm cursor-pointer"
+              >
+                {salvando ? "Salvando..." : selecionadoId ? "Salvar alterações" : "Criar edição"}
               </button>
-            </div>
-            <p className="text-xs text-gray-400">
-              Necessários para que os participantes aceitem os termos e concluam a inscrição da equipe sem erro 409.
-            </p>
-          </div>
-        </div>
+            </form>
+          </>
+        )}
       </div>
     </main>
   );
