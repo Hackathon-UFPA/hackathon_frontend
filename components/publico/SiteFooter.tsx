@@ -55,7 +55,7 @@ const redesSociais = [
 
 export default function SiteFooter() {
   return (
-    <footer className="relative z-10 border-t border-white/10 bg-[#0A1110]/90 px-6 py-12 backdrop-blur-xl">
+    <footer className="relative z-10 border-t border-gray-200 bg-[#F6F9F8]/90 px-6 py-12 backdrop-blur-xl">
       <div className="mx-auto max-w-6xl">
         <div className="flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
           {/* Identidade */}
@@ -65,12 +65,12 @@ export default function SiteFooter() {
                 IA
               </span>
 
-              <span className="text-sm font-bold uppercase tracking-widest text-white">
+              <span className="text-sm font-bold uppercase tracking-widest text-gray-900">
                 Hackathon Amazônia
               </span>
             </Link>
 
-            <p className="mt-4 text-sm leading-relaxed text-gray-400">
+            <p className="mt-4 text-sm leading-relaxed text-gray-600">
               Soluções de inteligência artificial para os desafios
               socioambientais da Amazônia.
             </p>
@@ -87,7 +87,7 @@ export default function SiteFooter() {
                 <li key={item.rotulo}>
                   <Link
                     href={item.href}
-                    className="text-sm text-gray-300 transition-colors hover:text-emerald-400"
+                    className="text-sm text-gray-700 transition-colors hover:text-emerald-700"
                   >
                     {item.rotulo}
                   </Link>
@@ -107,7 +107,7 @@ export default function SiteFooter() {
                 <li key={item.rotulo}>
                   <Link
                     href={item.href}
-                    className="text-sm text-gray-300 transition-colors hover:text-emerald-400"
+                    className="text-sm text-gray-700 transition-colors hover:text-emerald-700"
                   >
                     {item.rotulo}
                   </Link>
@@ -129,7 +129,7 @@ export default function SiteFooter() {
                     href={rede.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-gray-300 transition-colors hover:text-emerald-400"
+                    className="text-sm text-gray-700 transition-colors hover:text-emerald-700"
                   >
                     {rede.rotulo}
                   </a>
@@ -140,7 +140,7 @@ export default function SiteFooter() {
         </div>
 
         {/* Linha final */}
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-6 text-xs text-gray-500 md:flex-row">
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-gray-200 pt-6 text-xs text-gray-500 md:flex-row">
           <p>
             © {new Date().getFullYear()} Hackathon IA Amazônia. Todos os
             direitos reservados.

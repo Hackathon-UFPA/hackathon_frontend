@@ -61,24 +61,24 @@ export default function AboutSection() {
   return (
     <section
       id="sobre"
-      className="relative border-t border-white/5 py-20 md:py-28"
+      className="relative border-t border-gray-100 py-20 md:py-28"
     >
       <div className="mx-auto max-w-6xl px-6">
         {/* Cabeçalho */}
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:items-end">
           <div>
-            <span className="inline-block rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-emerald-400">
+            <span className="inline-block rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-emerald-700">
               Sobre o hackathon
             </span>
 
-            <h2 className="mt-5 text-3xl font-bold leading-tight text-white md:text-4xl">
+            <h2 className="mt-5 text-3xl font-bold leading-tight text-gray-900 md:text-4xl">
               Tecnologia, colaboração
               <br />
               e impacto para a Amazônia.
             </h2>
           </div>
 
-          <p className="text-sm leading-relaxed text-gray-400 md:text-base lg:pb-2">
+          <p className="text-sm leading-relaxed text-gray-600 md:text-base lg:pb-2">
             O Hackathon IA Amazônia reúne pessoas e organizações em torno de um
             mesmo objetivo: transformar desafios socioambientais em soluções
             tecnológicas com potencial real de impacto.
@@ -93,17 +93,17 @@ export default function AboutSection() {
             return (
               <div
                 key={pilar.titulo}
-                className="group rounded-2xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-md transition-all duration-300 hover:border-emerald-500/40 hover:bg-white/[0.06] md:p-8"
+                className="group rounded-2xl border border-gray-200 bg-white/[0.03] p-6 backdrop-blur-md transition-all duration-300 hover:border-emerald-500/40 hover:bg-white/[0.06] md:p-8"
               >
-                <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-400">
+                <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-700">
                   <Icone className="h-6 w-6" aria-hidden="true" />
                 </div>
 
-                <h3 className="text-lg font-bold text-white md:text-xl">
+                <h3 className="text-lg font-bold text-gray-900 md:text-xl">
                   {pilar.titulo}
                 </h3>
 
-                <p className="mt-3 text-sm leading-relaxed text-gray-400">
+                <p className="mt-3 text-sm leading-relaxed text-gray-600">
                   {pilar.descricao}
                 </p>
               </div>
@@ -115,18 +115,18 @@ export default function AboutSection() {
         <div className="mt-20">
           <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <span className="inline-block rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold uppercase tracking-widest text-gray-400">
+              <span className="inline-block rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs font-bold uppercase tracking-widest text-gray-600">
                 Como funciona
               </span>
 
-              <h3 className="mt-4 text-2xl font-bold text-white md:text-3xl">
+              <h3 className="mt-4 text-2xl font-bold text-gray-900 md:text-3xl">
                 Uma jornada do desafio à solução
               </h3>
             </div>
 
             <Link
               href="/cronograma"
-              className="group inline-flex items-center gap-2 self-start rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-bold text-white transition-all hover:border-emerald-400/50 hover:bg-emerald-500/10 hover:text-emerald-300 md:self-auto"
+              className="group inline-flex items-center gap-2 self-start rounded-xl border border-gray-200 bg-gray-50 px-5 py-3 text-sm font-bold text-white transition-all hover:border-emerald-400/50 hover:bg-emerald-500/10 hover:text-emerald-700 md:self-auto"
             >
               Ver cronograma
               <ArrowRight
@@ -143,21 +143,21 @@ export default function AboutSection() {
               return (
                 <div
                   key={etapa.titulo}
-                  className="relative rounded-2xl border border-white/10 bg-white/[0.02] p-6 backdrop-blur-md transition-colors duration-300 hover:border-emerald-500/30"
+                  className="relative rounded-2xl border border-gray-200 bg-white/[0.02] p-6 backdrop-blur-md transition-colors duration-300 hover:border-emerald-500/30"
                 >
-                  <span className="absolute right-5 top-5 text-xs font-bold uppercase tracking-widest text-gray-600">
+                  <span className="absolute right-5 top-5 text-xs font-bold uppercase tracking-widest text-gray-500">
                     0{indice + 1}
                   </span>
 
-                  <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-emerald-400">
+                  <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl border border-gray-200 bg-gray-50 text-emerald-700">
                     <Icone className="h-5 w-5" aria-hidden="true" />
                   </div>
 
-                  <h4 className="text-base font-bold text-white md:text-lg">
+                  <h4 className="text-base font-bold text-gray-900 md:text-lg">
                     {etapa.titulo}
                   </h4>
 
-                  <p className="mt-3 text-sm leading-relaxed text-gray-400">
+                  <p className="mt-3 text-sm leading-relaxed text-gray-600">
                     {etapa.descricao}
                   </p>
                 </div>

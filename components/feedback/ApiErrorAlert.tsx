@@ -49,16 +49,16 @@ export default function ApiErrorAlert({
       <div className="absolute -top-10 -right-10 h-28 w-28 rounded-full bg-red-500/15 blur-3xl" />
 
       <div className="relative flex items-start gap-4">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-red-500/25 bg-red-500/15 text-red-400">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-red-500/25 bg-red-500/15 text-red-600">
           <AlertTriangle className="h-5 w-5" />
         </div>
 
         <div className="min-w-0 flex-1">
-          <h3 className="text-sm font-bold tracking-wide text-white">
+          <h3 className="text-sm font-bold tracking-wide text-gray-900">
             {titulo}
           </h3>
 
-          <p className="mt-1 text-xs leading-relaxed text-gray-300">
+          <p className="mt-1 text-xs leading-relaxed text-gray-700">
             {mensagem}
           </p>
 
@@ -79,7 +79,7 @@ export default function ApiErrorAlert({
             type="button"
             onClick={onClose}
             aria-label="Fechar mensagem de erro"
-            className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-white/5 hover:text-white"
+            className="rounded-lg p-1.5 text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900"
           >
             <X className="h-4 w-4" />
           </button>

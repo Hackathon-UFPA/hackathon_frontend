@@ -5,24 +5,30 @@ import React, { useCallback, useEffect, useState } from "react";
 import {
   ComprovanteItem,
   enviarArquivoComprovante,
+  HackathonResumo,
   moduloCApi,
-  SituacaoConta,
 } from "@/lib/api";
-import {
-  BadgeComprovante,
-  BadgeSituacaoConta,
-  formatarDataBrasilia,
-} from "./StatusBadges";
+import { BadgeComprovante, formatarDataBrasilia } from "./StatusBadges";
 
 interface ComprovanteCardProps {
-  situacaoConta: SituacaoConta;
+  /** Hackathons em que a pessoa pode pedir participação (vitrine pública). */
+  hackathons: HackathonResumo[];
+  /** Hackathon já escolhido (ex.: vindo da página do hackathon). */
+  hackathonInicialId?: string;
   onAtualizarUsuario?: () => Promise<void>;
 }
 
+/**
+ * Comprovante de vínculo por hackathon: cada organização confere os comprovantes de quem quer
+ * participar dos hackathons dela. Sem comprovante aprovado no hackathon, a equipe não é
+ * homologada.
+ */
 export function ComprovanteCard({
-  situacaoConta,
+  hackathons,
+  hackathonInicialId,
   onAtualizarUsuario,
 }: ComprovanteCardProps) {
+  const [hackathonId, setHackathonId] = useState(hackathonInicialId ?? "");
   const [comprovantes, setComprovantes] = useState<ComprovanteItem[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -52,10 +58,20 @@ export function ComprovanteCard({
     carregar();
   }, [carregar]);
 
-  const maisRecente = comprovantes[0] ?? null;
+  // Quando o hackathon de origem muda (ex.: painel da equipe carregou), ajusta durante o render.
+  const [inicialAnterior, setInicialAnterior] = useState(hackathonInicialId);
+  if (hackathonInicialId !== inicialAnterior) {
+    setInicialAnterior(hackathonInicialId);
+    if (hackathonInicialId) setHackathonId(hackathonInicialId);
+  }
+
+  const nomeDoHackathon = (id: string) =>
+    hackathons.find((h) => h.id === id)?.nome || "Hackathon";
+  const abertos = hackathons.filter((h) => h.status === "INSCRICOES");
+  const doHackathon = comprovantes.filter((c) => c.hackathon_id === hackathonId);
+  const maisRecente = doHackathon[0] ?? null;
   const reenvioPermitido =
-    situacaoConta === "PENDENTE" &&
-    (!maisRecente || maisRecente.status === "RECUSADO");
+    Boolean(hackathonId) && (!maisRecente || maisRecente.status === "RECUSADO");
 
   const handleReenviar = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,6 +79,10 @@ export function ComprovanteCard({
     setSucessoMsg(null);
 
     const urlLimpa = novaUrl.trim();
+    if (!hackathonId) {
+      setErro("Escolha o hackathon de que você quer participar.");
+      return;
+    }
     if (!arquivo) {
       if (!urlLimpa) {
         setErro("Selecione o arquivo do comprovante ou informe um link.");
@@ -82,10 +102,10 @@ export function ComprovanteCard({
     try {
       // Com arquivo, o upload vai direto ao Cloudinary e a API recebe só o link.
       const url = arquivo ? await enviarArquivoComprovante(arquivo) : urlLimpa;
-      await moduloCApi.enviarNovoComprovante(url);
+      await moduloCApi.enviarComprovante(hackathonId, url);
       setNovaUrl("");
       setArquivo(null);
-      setSucessoMsg("Novo comprovante enviado para análise do Comitê Científico.");
+      setSucessoMsg("Comprovante enviado para análise da organização do hackathon.");
       await carregar();
       if (onAtualizarUsuario) await onAtualizarUsuario();
     } catch (err: unknown) {
@@ -102,14 +122,14 @@ export function ComprovanteCard({
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#EDE6D6] pb-4">
         <div>
           <h2 className="text-lg font-bold text-[#1B4332]">
-            Situação da Conta e Comprovante de Vínculo
+            Comprovante de Vínculo por Hackathon
           </h2>
           <p className="text-xs text-[#5C574F] mt-1">
-            A aprovação do comprovante ativa sua conta para criar equipes ou aceitar convites.
+            Cada hackathon pede o seu comprovante de vínculo (matrícula, crachá, contrato...).
+            A organização do evento confere e aprova; sem ele a equipe não é homologada.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <BadgeSituacaoConta situacao={situacaoConta} />
           <button
             type="button"
             onClick={async () => {
@@ -142,6 +162,49 @@ export function ComprovanteCard({
         </div>
       )}
 
+      <div className="space-y-1.5">
+        <label
+          htmlFor="comprovante-hackathon"
+          className="block text-xs font-bold uppercase tracking-wider text-[#6B4F3B]"
+        >
+          Hackathon
+        </label>
+        <select
+          id="comprovante-hackathon"
+          value={hackathonId}
+          onChange={(e) => {
+            setHackathonId(e.target.value);
+            setErro(null);
+            setSucessoMsg(null);
+          }}
+          className="w-full px-3.5 py-2.5 text-sm bg-white border border-[#D8CFC0] rounded-lg text-[#1F2421] focus:outline-none focus:border-[#2D6A4F]"
+        >
+          <option value="">Selecione um hackathon...</option>
+          {hackathons
+            .filter((h) => h.status === "INSCRICOES" || comprovantes.some((c) => c.hackathon_id === h.id))
+            .map((h) => (
+              <option key={h.id} value={h.id}>
+                {h.nome || "Hackathon sem nome"}
+                {h.organizacao_nome ? ` — ${h.organizacao_nome}` : ""}
+              </option>
+            ))}
+        </select>
+        {abertos.length === 0 && (
+          <p className="text-[11px] text-[#5C574F]">
+            Nenhum hackathon com inscrições abertas no momento.
+          </p>
+        )}
+      </div>
+
+      {maisRecente && maisRecente.status !== "RECUSADO" && (
+        <div className="p-3.5 rounded-xl bg-[#FAF8F5] border border-[#EDE6D6] text-xs text-[#1F2421] flex items-center gap-2 flex-wrap">
+          <BadgeComprovante status={maisRecente.status} />
+          {maisRecente.status === "APROVADO"
+            ? "Vínculo aprovado para este hackathon."
+            : "Comprovante em análise pela organização deste hackathon."}
+        </div>
+      )}
+
       {/* Alerta de Recusa */}
       {maisRecente?.status === "RECUSADO" && (
         <div className="p-4 rounded-xl bg-[#FDECEA] border border-[#F5C2C7] space-y-1">
@@ -168,7 +231,7 @@ export function ComprovanteCard({
             htmlFor="novo-comprovante-arquivo"
             className="block text-xs font-bold uppercase tracking-wider text-[#6B4F3B]"
           >
-            Reenviar Comprovante (PDF, PNG ou JPG, até 10 MB)
+            {maisRecente ? "Reenviar comprovante" : "Enviar comprovante"} (PDF, PNG ou JPG, até 10 MB)
           </label>
           <input
             id="novo-comprovante-arquivo"
@@ -193,7 +256,7 @@ export function ComprovanteCard({
               disabled={enviando}
               className="px-5 py-2.5 rounded-lg bg-[#1B4332] hover:bg-[#2D6A4F] text-white text-xs font-bold transition-colors cursor-pointer disabled:opacity-50"
             >
-              {enviando ? "Enviando..." : "Enviar Novo Comprovante"}
+              {enviando ? "Enviando..." : "Enviar comprovante"}
             </button>
           </div>
           <p className="text-[11px] text-[#5C574F]">
@@ -211,7 +274,7 @@ export function ComprovanteCard({
           <p className="text-xs text-[#5C574F]">Carregando histórico...</p>
         ) : comprovantes.length === 0 ? (
           <p className="text-xs text-[#5C574F] bg-[#FAF8F5] p-3.5 rounded-xl border border-[#EDE6D6]">
-            Nenhum comprovante registrado nesta conta ainda.
+            Você ainda não enviou comprovante para nenhum hackathon.
           </p>
         ) : (
           <ul className="divide-y divide-[#EDE6D6] border border-[#EDE6D6] rounded-xl overflow-hidden">
@@ -223,6 +286,9 @@ export function ComprovanteCard({
                 <div className="space-y-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <BadgeComprovante status={item.status} />
+                    <span className="font-semibold text-[#1B4332]">
+                      {nomeDoHackathon(item.hackathon_id)}
+                    </span>
                     <span className="text-[#5C574F]">
                       Enviado em {formatarDataBrasilia(item.enviado_em)}
                     </span>

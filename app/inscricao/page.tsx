@@ -15,8 +15,8 @@ export default function InscricaoPage() {
   }, [router]);
 
   return (
-    <main className="min-h-screen bg-[#0A1110] flex items-center justify-center">
-      <p className="text-emerald-400 text-sm font-mono animate-pulse">Abrindo o painel da equipe...</p>
+    <main className="min-h-screen bg-[#F6F9F8] flex items-center justify-center">
+      <p className="text-emerald-700 text-sm font-mono animate-pulse">Abrindo o painel da equipe...</p>
     </main>
   );
 }

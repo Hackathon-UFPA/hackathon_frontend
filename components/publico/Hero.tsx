@@ -18,21 +18,21 @@ export default function Hero() {
       <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-16 px-6 lg:grid-cols-2">
         {/* Coluna esquerda */}
         <div className="text-center lg:text-left">
-          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-emerald-300 backdrop-blur-sm">
+          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-emerald-700 backdrop-blur-sm">
             <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
             Inteligência Artificial na Amazônia
           </div>
 
-          <h1 className="mt-8 text-4xl font-extrabold leading-[1.05] tracking-tight text-white sm:text-5xl md:text-6xl">
+          <h1 className="mt-8 text-4xl font-extrabold leading-[1.05] tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
             Conectando
             <br />
-            <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 bg-clip-text text-transparent">
               tecnologia
             </span>{" "}
             e Amazônia
           </h1>
 
-          <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-gray-300 md:text-lg lg:mx-0">
+          <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-gray-700 md:text-lg lg:mx-0">
             O Hackathon IA Amazônia 2027 reúne estudantes, pesquisadores,
             desenvolvedores e especialistas para criar soluções de inteligência
             artificial diante dos desafios socioambientais da região.
@@ -52,40 +52,40 @@ export default function Hero() {
 
             <Link
               href="/cronograma"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-8 py-4 text-base font-bold text-white backdrop-blur-md transition-all hover:border-emerald-400/40 hover:bg-white/10 sm:w-auto"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-8 py-4 text-base font-bold text-gray-900 backdrop-blur-md transition-all hover:border-emerald-400/40 hover:bg-gray-100 sm:w-auto"
             >
               Ver cronograma
             </Link>
           </div>
 
           {/* Indicadores */}
-          <div className="mt-14 grid grid-cols-1 gap-6 border-t border-white/10 pt-8 sm:grid-cols-3">
+          <div className="mt-14 grid grid-cols-1 gap-6 border-t border-gray-200 pt-8 sm:grid-cols-3">
             <div className="text-center lg:text-left">
-              <span className="block text-2xl font-extrabold text-white md:text-3xl">
+              <span className="block text-2xl font-extrabold text-gray-900 md:text-3xl">
                 72h
               </span>
 
-              <span className="mt-1 block text-xs uppercase tracking-wider text-gray-400">
+              <span className="mt-1 block text-xs uppercase tracking-wider text-gray-600">
                 de imersão
               </span>
             </div>
 
             <div className="text-center lg:text-left">
-              <span className="block text-2xl font-extrabold text-emerald-400 md:text-3xl">
+              <span className="block text-2xl font-extrabold text-emerald-700 md:text-3xl">
                 3 trilhas
               </span>
 
-              <span className="mt-1 block text-xs uppercase tracking-wider text-gray-400">
+              <span className="mt-1 block text-xs uppercase tracking-wider text-gray-600">
                 desafios ODS
               </span>
             </div>
 
             <div className="text-center lg:text-left">
-              <span className="block text-2xl font-extrabold text-white md:text-3xl">
+              <span className="block text-2xl font-extrabold text-gray-900 md:text-3xl">
                 Belém
               </span>
 
-              <span className="mt-1 block text-xs uppercase tracking-wider text-gray-400">
+              <span className="mt-1 block text-xs uppercase tracking-wider text-gray-600">
                 edição 2027
               </span>
             </div>
@@ -102,7 +102,7 @@ export default function Hero() {
 
           <div className="relative grid grid-cols-2 gap-4">
             {/* Foto principal: Amazônia */}
-            <div className="col-span-2 relative overflow-hidden rounded-3xl border border-white/10 shadow-2xl">
+            <div className="col-span-2 relative overflow-hidden rounded-3xl border border-gray-200 shadow-2xl">
               <img
                 src="https://magnific.com/br/fotos-vetores-gratis/amazonia-brasileira"
                 alt="Paisagem amazônica com rio e floresta"
@@ -110,10 +110,10 @@ export default function Hero() {
                 loading="eager"
               />
 
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0A1110]/90 via-[#0A1110]/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#F6F9F8]/90 via-[#F6F9F8]/20 to-transparent" />
 
               <div className="absolute bottom-5 left-5 right-5">
-                <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-[#0A1110]/80 px-3 py-1.5 text-xs font-semibold text-emerald-300 backdrop-blur-md">
+                <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-[#F6F9F8]/80 px-3 py-1.5 text-xs font-semibold text-emerald-700 backdrop-blur-md">
                   <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
                   Amazônia, tecnologia e futuro
                 </span>
@@ -121,7 +121,7 @@ export default function Hero() {
             </div>
 
             {/* Foto secundária: IA e tecnologia */}
-            <div className="relative overflow-hidden rounded-2xl border border-white/10 shadow-xl">
+            <div className="relative overflow-hidden rounded-2xl border border-gray-200 shadow-xl">
               <img
                 src="https://images.unsplash.com/photo-1555949963-aa79dcee981c?auto=format&fit=crop&w=800&q=80"
                 alt="Pessoa trabalhando com tecnologia e inteligência artificial"
@@ -129,11 +129,11 @@ export default function Hero() {
                 loading="lazy"
               />
 
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0A1110]/80 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#F6F9F8]/80 to-transparent" />
             </div>
 
             {/* Foto secundária: pessoas e colaboração */}
-            <div className="relative overflow-hidden rounded-2xl border border-white/10 shadow-xl">
+            <div className="relative overflow-hidden rounded-2xl border border-gray-200 shadow-xl">
               <img
                 src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=80"
                 alt="Equipe colaborando em um ambiente de trabalho"
@@ -141,17 +141,17 @@ export default function Hero() {
                 loading="lazy"
               />
 
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0A1110]/80 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#F6F9F8]/80 to-transparent" />
             </div>
           </div>
 
           {/* Card flutuante */}
-          <div className="absolute -bottom-6 -left-4 z-20 hidden rounded-2xl border border-emerald-500/25 bg-[#0A1110]/90 px-5 py-4 shadow-2xl backdrop-blur-xl md:block md:-rotate-3">
-            <p className="text-xs font-semibold uppercase tracking-widest text-emerald-300">
+          <div className="absolute -bottom-6 -left-4 z-20 hidden rounded-2xl border border-emerald-500/25 bg-[#F6F9F8]/90 px-5 py-4 shadow-2xl backdrop-blur-xl md:block md:-rotate-3">
+            <p className="text-xs font-semibold uppercase tracking-widest text-emerald-700">
               Hackathon IA Amazônia
             </p>
 
-            <p className="mt-1 text-sm font-bold text-white">
+            <p className="mt-1 text-sm font-bold text-gray-900">
               Soluções para a Amazônia
             </p>
           </div>

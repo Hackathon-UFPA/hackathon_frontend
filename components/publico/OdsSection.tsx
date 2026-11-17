@@ -25,7 +25,7 @@ const trilhas: TrilhaOds[] = [
         rotacao: "md:-rotate-2",
         fundo: "bg-emerald-500/[0.08]",
         borda: "border-emerald-500/25",
-        corIcone: "text-emerald-400",
+        corIcone: "text-emerald-700",
     },
     {
         icone: Droplets,
@@ -36,7 +36,7 @@ const trilhas: TrilhaOds[] = [
         rotacao: "md:rotate-1",
         fundo: "bg-sky-500/[0.08]",
         borda: "border-sky-500/25",
-        corIcone: "text-sky-400",
+        corIcone: "text-sky-700",
     },
     {
         icone: HeartPulse,
@@ -74,22 +74,22 @@ export default function OdsSection() {
     return (
         <section
             id="desafios"
-            className="relative overflow-hidden border-t border-white/5 py-20 md:py-28"
+            className="relative overflow-hidden border-t border-gray-100 py-20 md:py-28"
         >
             <div className="mx-auto max-w-6xl px-6">
                 {/* Cabeçalho centralizado */}
                 <div className="mb-12 text-center">
-                    <span className="inline-block rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-emerald-400">
+                    <span className="inline-block rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-emerald-700">
                         Eixos temáticos
                     </span>
 
-                    <h2 className="mt-4 text-3xl font-bold leading-tight text-white md:text-4xl">
+                    <h2 className="mt-4 text-3xl font-bold leading-tight text-gray-900 md:text-4xl">
                         Desafios regionais
                         <br />
                         e trilhas ODS
                     </h2>
 
-                    <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-gray-400 md:text-base">
+                    <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-gray-600 md:text-base">
                         Escolha uma trilha e aplique inteligência artificial para criar
                         soluções voltadas aos desafios reais da Amazônia.
                     </p>
@@ -101,7 +101,7 @@ export default function OdsSection() {
                         type="button"
                         onClick={() => rolar("anterior")}
                         aria-label="Ver trilha anterior"
-                        className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-gray-300 transition-all hover:border-emerald-400/50 hover:bg-emerald-500/10 hover:text-emerald-300"
+                        className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-gray-700 transition-all hover:border-emerald-400/50 hover:bg-emerald-500/10 hover:text-emerald-700"
                     >
                         <ChevronLeft className="h-5 w-5" aria-hidden="true" />
                     </button>
@@ -110,7 +110,7 @@ export default function OdsSection() {
                         type="button"
                         onClick={() => rolar("proximo")}
                         aria-label="Ver próxima trilha"
-                        className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-gray-300 transition-all hover:border-emerald-400/50 hover:bg-emerald-500/10 hover:text-emerald-300"
+                        className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-gray-700 transition-all hover:border-emerald-400/50 hover:bg-emerald-500/10 hover:text-emerald-700"
                     >
                         <ChevronRight className="h-5 w-5" aria-hidden="true" />
                     </button>
@@ -135,7 +135,7 @@ export default function OdsSection() {
                             >
                                 <div>
                                     <div
-                                        className={`mb-6 flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-white/5 ${trilha.corIcone}`}
+                                        className={`mb-6 flex h-12 w-12 items-center justify-center rounded-xl border border-gray-200 bg-gray-50 ${trilha.corIcone}`}
                                     >
                                         <Icone className="h-6 w-6" aria-hidden="true" />
                                     </div>
@@ -144,23 +144,23 @@ export default function OdsSection() {
                                         {trilha.tag}
                                     </span>
 
-                                    <h3 className="mt-3 text-xl font-bold text-white md:text-2xl">
+                                    <h3 className="mt-3 text-xl font-bold text-gray-900 md:text-2xl">
                                         {trilha.titulo}
                                     </h3>
 
-                                    <p className="mt-4 text-sm leading-relaxed text-gray-300 md:text-base">
+                                    <p className="mt-4 text-sm leading-relaxed text-gray-700 md:text-base">
                                         {trilha.descricao}
                                     </p>
                                 </div>
 
-                                <div className="mt-8 flex items-center justify-between border-t border-white/10 pt-5">
+                                <div className="mt-8 flex items-center justify-between border-t border-gray-200 pt-5">
                                     <span className="text-xs font-semibold uppercase tracking-widest text-gray-500">
                                         ODS
                                     </span>
 
                                     <Link
                                         href="/inscricao"
-                                        className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-xs font-bold text-white transition-all hover:border-emerald-400/50 hover:bg-emerald-500/10 hover:text-emerald-300"
+                                        className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-xs font-bold text-white transition-all hover:border-emerald-400/50 hover:bg-emerald-500/10 hover:text-emerald-700"
                                     >
                                         Participar
                                         <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -173,17 +173,17 @@ export default function OdsSection() {
                     {/* Cartão de ação */}
                     <article className="group flex w-[85%] shrink-0 snap-center flex-col justify-between rounded-2xl border border-emerald-500/25 bg-emerald-500/[0.08] p-6 backdrop-blur-md transition-transform duration-300 sm:w-[70%] md:w-[380px] md:p-8 md:rotate-2">
                         <div>
-                            <span className="text-xs font-semibold uppercase tracking-widest text-emerald-400">
+                            <span className="text-xs font-semibold uppercase tracking-widest text-emerald-700">
                                 Participe
                             </span>
 
-                            <h3 className="mt-4 text-3xl font-extrabold leading-tight text-white md:text-4xl">
+                            <h3 className="mt-4 text-3xl font-extrabold leading-tight text-gray-900 md:text-4xl">
                                 Pronto para
                                 <br />
                                 colaborar?
                             </h3>
 
-                            <p className="mt-5 text-sm leading-relaxed text-gray-300 md:text-base">
+                            <p className="mt-5 text-sm leading-relaxed text-gray-700 md:text-base">
                                 Forme sua equipe, escolha uma trilha e contribua com uma
                                 solução de inteligência artificial para a Amazônia.
                             </p>
@@ -192,7 +192,7 @@ export default function OdsSection() {
                         <div className="mt-10 flex justify-end">
                             <Link
                                 href="/inscricao"
-                                className="inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-500/10 px-6 py-3 text-sm font-bold text-emerald-300 transition-all hover:border-emerald-300 hover:bg-emerald-500/20 hover:text-emerald-200"
+                                className="inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-500/10 px-6 py-3 text-sm font-bold text-emerald-700 transition-all hover:border-emerald-300 hover:bg-emerald-500/20 hover:text-emerald-800"
                             >
                                 Quero participar
                                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
