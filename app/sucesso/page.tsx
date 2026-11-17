@@ -152,7 +152,7 @@ function ConteudoSucesso() {
       <div
         className={`p-4 rounded-xl border text-xs space-y-1 ${
           homologada
-            ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-200"
+            ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-800"
             : "bg-amber-500/10 border-amber-500/30 text-amber-800"
         }`}
       >

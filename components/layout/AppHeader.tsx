@@ -115,7 +115,7 @@ export default function AppHeader() {
 {temPainel && (
                 <Link
                   href={painel.href}
-                  className="inline-flex items-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-xs font-bold text-emerald-700 transition-colors hover:border-emerald-400/50 hover:bg-emerald-500/20 hover:text-emerald-200"
+                  className="inline-flex items-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-xs font-bold text-emerald-700 transition-colors hover:border-emerald-400/50 hover:bg-emerald-500/20 hover:text-emerald-800"
                 >
                   {painel.rotulo}
                 </Link>

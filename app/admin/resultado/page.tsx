@@ -222,7 +222,7 @@ function ConteudoResultado() {
             </section>
 
             {homologado && (
-              <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-200 space-y-1">
+              <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-800 space-y-1">
                 <p className="font-bold text-emerald-700">Resultado oficial homologado</p>
                 <p>
                   Por <strong>{resultado.homologado_por_nome || "—"}</strong> em{" "}

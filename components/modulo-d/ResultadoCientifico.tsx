@@ -98,7 +98,7 @@ export function ResultadoCientifico({ equipeId }: { equipeId: string }) {
             <div
               className={`p-4 rounded-xl border text-xs space-y-1 ${
                 resultado.aprovada
-                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-200"
+                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-800"
                   : "bg-red-500/10 border-red-500/30 text-red-700"
               }`}
             >

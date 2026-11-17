@@ -499,7 +499,7 @@ export function EditorProposta({
         {sucesso && (
           <div
             role="status"
-            className="flex items-start gap-3 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-4 text-xs text-emerald-200"
+            className="flex items-start gap-3 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-4 text-xs text-emerald-800"
           >
             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" />
             <span>{sucesso}</span>

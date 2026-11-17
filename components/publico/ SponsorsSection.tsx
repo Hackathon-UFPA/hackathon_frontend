@@ -176,7 +176,7 @@ export default function SponsorsSection() {
 
           <Link
             href="#"
-            className="group inline-flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-6 py-3 text-sm font-bold text-emerald-700 transition-all hover:border-emerald-400/50 hover:bg-emerald-500/20 hover:text-emerald-200 md:w-auto"
+            className="group inline-flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-6 py-3 text-sm font-bold text-emerald-700 transition-all hover:border-emerald-400/50 hover:bg-emerald-500/20 hover:text-emerald-800 md:w-auto"
           >
             Seja um patrocinador
             <ArrowRight
