@@ -31,19 +31,19 @@ export default function ContactSection() {
   return (
     <section
       id="contato"
-      className="relative border-t border-white/5 py-20 md:py-28"
+      className="relative border-t border-gray-100 py-20 md:py-28"
     >
       <div className="mx-auto max-w-6xl px-6">
         <div className="mb-12 max-w-2xl">
-          <span className="inline-block rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-emerald-400">
+          <span className="inline-block rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-emerald-700">
             Fale com a organização
           </span>
 
-          <h2 className="mt-4 text-3xl font-bold text-white md:text-4xl">
+          <h2 className="mt-4 text-3xl font-bold text-gray-900 md:text-4xl">
             Entre em contato
           </h2>
 
-          <p className="mt-4 text-sm leading-relaxed text-gray-400 md:text-base">
+          <p className="mt-4 text-sm leading-relaxed text-gray-600 md:text-base">
             Estamos disponíveis para esclarecer dúvidas, receber propostas de
             parceria e apoiar a divulgação do Hackathon IA Amazônia 2027.
           </p>
@@ -57,21 +57,21 @@ export default function ContactSection() {
               <a
                 key={canal.titulo}
                 href={canal.href}
-                className="group rounded-2xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-md transition-all duration-300 hover:border-emerald-500/40 hover:bg-white/[0.06]"
+                className="group rounded-2xl border border-gray-200 bg-white/[0.03] p-6 backdrop-blur-md transition-all duration-300 hover:border-emerald-500/40 hover:bg-white/[0.06]"
               >
-                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-400">
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-700">
                   <Icone className="h-6 w-6" aria-hidden="true" />
                 </div>
 
-                <h3 className="text-lg font-bold text-white">
+                <h3 className="text-lg font-bold text-gray-900">
                   {canal.titulo}
                 </h3>
 
-                <p className="mt-3 text-sm leading-relaxed text-gray-400">
+                <p className="mt-3 text-sm leading-relaxed text-gray-600">
                   {canal.descricao}
                 </p>
 
-                <span className="mt-5 inline-block text-sm font-semibold text-emerald-400 transition-colors group-hover:text-emerald-300">
+                <span className="mt-5 inline-block text-sm font-semibold text-emerald-700 transition-colors group-hover:text-emerald-700">
                   {canal.texto}
                 </span>
               </a>

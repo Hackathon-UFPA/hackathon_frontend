@@ -126,7 +126,7 @@ function ConteudoPaginaProposta() {
   if (carregandoInicial) {
     return (
       <div className="relative z-10 flex min-h-screen items-center justify-center p-6">
-        <p className="font-mono text-sm text-emerald-400">
+        <p className="font-mono text-sm text-emerald-700">
           Carregando Módulo de Propostas...
         </p>
       </div>
@@ -136,9 +136,9 @@ function ConteudoPaginaProposta() {
   if (!usuario) {
     return (
       <div className="relative z-10 flex min-h-screen items-center justify-center p-6">
-        <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-6 text-center backdrop-blur-xl space-y-4">
-          <h1 className="text-lg font-extrabold text-white">Acesso Restrito</h1>
-          <p className="text-xs text-gray-300">
+        <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-gray-50 p-6 text-center backdrop-blur-xl space-y-4">
+          <h1 className="text-lg font-extrabold text-gray-900">Acesso Restrito</h1>
+          <p className="text-xs text-gray-700">
             {erro || "Faça login com sua conta de participante para continuar."}
           </p>
           <Link
@@ -153,18 +153,18 @@ function ConteudoPaginaProposta() {
   }
 
   return (
-    <div className="relative z-10 mx-auto max-w-6xl px-4 py-8 sm:px-6 space-y-6">
+    <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 space-y-6">
       {/* Cabeçalho da Página */}
-      <header className="flex flex-col justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-xl sm:flex-row sm:items-center">
+      <header className="flex flex-col justify-between gap-4 rounded-2xl border border-gray-200 bg-white/[0.04] p-5 backdrop-blur-xl sm:flex-row sm:items-center">
         <div className="flex items-center gap-3.5">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/15 text-emerald-400">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/15 text-emerald-700">
             <FileText className="h-5 w-5" />
           </div>
           <div>
-            <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-400">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-700">
               Módulo D • Submissão Científica
             </span>
-            <h1 className="text-xl font-extrabold text-white">
+            <h1 className="text-xl font-extrabold text-gray-900">
               Proposta da Equipe
             </h1>
           </div>
@@ -176,7 +176,7 @@ function ConteudoPaginaProposta() {
               ? `/equipe?equipe_id=${encodeURIComponent(equipeSelecionadaId)}`
               : "/equipe"
           }
-          className="inline-flex items-center gap-2 self-start rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-bold text-gray-200 transition-colors hover:border-emerald-400/50 hover:text-white sm:self-auto"
+          className="inline-flex items-center gap-2 self-start rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-xs font-bold text-gray-800 transition-colors hover:border-emerald-400/50 hover:text-gray-900 sm:self-auto"
         >
           <ArrowLeft className="h-4 w-4" />
           Voltar ao Painel da Equipe
@@ -194,11 +194,11 @@ function ConteudoPaginaProposta() {
 
       {/* Seletor de Equipe */}
       {minhasEquipes.length === 0 ? (
-        <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-8 text-center backdrop-blur-xl space-y-3">
-          <p className="text-sm font-bold text-white">
+        <div className="rounded-2xl border border-gray-200 bg-white/[0.04] p-8 text-center backdrop-blur-xl space-y-3">
+          <p className="text-sm font-bold text-gray-900">
             Você ainda não possui nenhuma equipe vinculada.
           </p>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-600">
             Crie ou aceite o convite de uma equipe no painel antes de elaborar
             uma proposta.
           </p>
@@ -211,15 +211,15 @@ function ConteudoPaginaProposta() {
         </div>
       ) : (
         <>
-          <section className="flex flex-col justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur-xl sm:flex-row sm:items-center">
-            <span className="text-xs font-semibold text-gray-300">
+          <section className="flex flex-col justify-between gap-4 rounded-2xl border border-gray-200 bg-white/[0.04] p-4 backdrop-blur-xl sm:flex-row sm:items-center">
+            <span className="text-xs font-semibold text-gray-700">
               Equipe selecionada para a proposta:
             </span>
             <select
               aria-label="Selecionar equipe"
               value={equipeSelecionadaId}
               onChange={(e) => selecionarEquipe(e.target.value)}
-              className="min-w-[260px] rounded-xl border border-white/15 bg-[#0A1110] px-3.5 py-2 text-xs font-bold text-emerald-300 focus:border-emerald-500 focus:outline-none"
+              className="min-w-[260px] rounded-xl border border-gray-200 bg-[#F6F9F8] px-3.5 py-2 text-xs font-bold text-emerald-700 focus:border-emerald-500 focus:outline-none"
             >
               {minhasEquipes.length > 1 && (
                 <option value="">-- Selecione uma equipe --</option>
@@ -233,7 +233,7 @@ function ConteudoPaginaProposta() {
           </section>
 
           {carregandoPainel ? (
-            <p className="font-mono text-xs text-emerald-400">
+            <p className="font-mono text-xs text-emerald-700">
               Carregando contexto da equipe...
             </p>
           ) : painel ? (
@@ -254,19 +254,11 @@ function ConteudoPaginaProposta() {
 
 export default function PropostaPage() {
   return (
-    <div className="min-h-screen bg-[#0A1110] text-gray-300 font-sans selection:bg-emerald-500/30">
-      {/* Background padrão da plataforma */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-15"
-          style={{ backgroundImage: "url('/floresta.jpg')" }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0A1110]/60 via-[#0A1110]/85 to-[#0A1110]" />
-      </div>
+    <div className="min-h-screen bg-[#F6F9F8] text-gray-700 font-sans selection:bg-emerald-500/30">
 
       <Suspense
         fallback={
-          <div className="relative z-10 flex min-h-screen items-center justify-center font-mono text-sm text-emerald-400">
+          <div className="relative z-10 flex min-h-screen items-center justify-center font-mono text-sm text-emerald-700">
             Carregando editor...
           </div>
         }

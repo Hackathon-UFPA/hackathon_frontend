@@ -147,7 +147,8 @@ export function ConvitesRecebidos({
         <div className="p-4 rounded-xl bg-[#FDF3E7] border border-[#E6CCB2] text-xs text-[#6B4F3B] space-y-1">
           <p className="font-bold">Sua conta está aguardando validação do comprovante</p>
           <p>
-            Você já pode visualizar seus convites abaixo, mas o aceite fica bloqueado até que o Comitê aprove seu comprovante de vínculo.
+            Você já pode aceitar ou recusar os convites e os termos. A equipe só é homologada depois que o seu
+            comprovante de vínculo for aprovado.
           </p>
         </div>
       )}
@@ -183,7 +184,6 @@ export function ConvitesRecebidos({
         <div className="space-y-3">
           {convites.map((convite) => {
             const pendente = convite.status === "PENDENTE";
-            const bloqueadoPorConta = situacaoConta === "PENDENTE";
             return (
               <div
                 key={convite.id}
@@ -223,16 +223,12 @@ export function ConvitesRecebidos({
                     </button>
                     <button
                       type="button"
-                      disabled={bloqueadoPorConta || processandoId === convite.id}
-                      title={
-                        bloqueadoPorConta
-                          ? "Aguarde a validação do seu comprovante para aceitar"
-                          : "Ler termos e aceitar convite"
-                      }
+                      disabled={processandoId === convite.id}
+                      title="Ler termos e aceitar convite"
                       onClick={() => abrirAceiteComTermos(convite)}
                       className="px-4 py-2 rounded-lg bg-[#1B4332] hover:bg-[#2D6A4F] text-white text-xs font-bold transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                     >
-                      {bloqueadoPorConta ? "Conta Pendente" : "Ler Termos e Aceitar"}
+                      Ler Termos e Aceitar
                     </button>
                   </div>
                 )}

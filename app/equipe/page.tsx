@@ -24,34 +24,18 @@ import {
   GestaoEquipe,
 } from "@/components/modulo-c/GestaoEquipe";
 import { ResultadoCientifico } from "@/components/modulo-d/ResultadoCientifico";
+import { ComposicaoEquipe } from "@/components/modulo-c/ComposicaoEquipe";
+import { MentorEquipe } from "@/components/modulo-c/MentorEquipe";
 
 type AbaPainel = "visao-geral" | "inscricao" | "convites-conta" | "proposta" | "resultado";
 
-/** EQP-02: com conta pendente a API recusa convites; explicamos em vez de mostrar erro. */
-function AvisoConvitesContaPendente() {
-  return (
-    <section className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-6 shadow-lg space-y-2">
-      <h2 className="text-base font-bold text-white">Convites recebidos</h2>
-      <p className="text-xs text-gray-400 leading-relaxed">
-        Os convites ficam disponíveis depois que o Comitê aprovar o seu comprovante de vínculo.
-        Acompanhe a situação do comprovante na aba <strong className="text-gray-200">Conta &amp; Convites</strong>.
-      </p>
-    </section>
-  );
-}
-
 function FundoPadrao() {
+  // Brilho verde suave no topo, no lugar da antiga foto de floresta do evento
   return (
-    <div className="fixed inset-0 z-0 pointer-events-none">
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-15"
-        style={{
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1516245834210-c4c142787335?q=80&w=2069&auto=format&fit=crop')",
-        }}
-      />
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0A1110]/60 via-[#0A1110]/85 to-[#0A1110]" />
-    </div>
+    <div
+      aria-hidden="true"
+      className="fixed inset-0 z-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,rgba(16,185,129,0.10),transparent_60%)]"
+    />
   );
 }
 
@@ -59,6 +43,9 @@ function ConteudoPainelEquipe() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const equipeIdUrl = searchParams.get("equipe_id");
+  // Vindo da página pública do hackathon ("Quero participar"): abre o comprovante dele.
+  const hackathonIdUrl = searchParams.get("hackathon_id") ?? "";
+  const hackathonIdUrlRef = useRef(hackathonIdUrl);
 
   const [usuario, setUsuario] = useState<UsuarioMe | null>(null);
   const [hackathons, setHackathons] = useState<HackathonResumo[]>([]);
@@ -87,7 +74,7 @@ function ConteudoPainelEquipe() {
       const me = await moduloCApi.obterMe();
       setUsuario(me);
       // Conta pendente: o primeiro passo é o comprovante (EQP-01).
-      if (primeiraCarga.current && me.situacao_conta === "PENDENTE") {
+      if (primeiraCarga.current && (me.situacao_conta === "PENDENTE" || hackathonIdUrlRef.current)) {
         setAbaAtiva("convites-conta");
       }
 
@@ -176,9 +163,9 @@ function ConteudoPainelEquipe() {
 
   if (carregandoInicial) {
     return (
-      <div className="min-h-screen bg-[#0A1110] text-gray-300 relative flex items-center justify-center p-6">
+      <div className="min-h-screen bg-[#F6F9F8] text-gray-700 relative flex items-center justify-center p-6">
         <FundoPadrao />
-        <p className="relative z-10 text-sm font-semibold text-emerald-400 animate-pulse">
+        <p className="relative z-10 text-sm font-semibold text-emerald-700 animate-pulse">
           Carregando área do participante...
         </p>
       </div>
@@ -187,20 +174,20 @@ function ConteudoPainelEquipe() {
 
   if (!usuario) {
     return (
-      <div className="min-h-screen bg-[#0A1110] text-gray-300 relative flex items-center justify-center p-6">
+      <div className="min-h-screen bg-[#F6F9F8] text-gray-700 relative flex items-center justify-center p-6">
         <FundoPadrao />
-        <div className="relative z-10 max-w-md w-full bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl p-8 text-center space-y-4 shadow-2xl">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-300 text-[11px] font-semibold tracking-widest uppercase">
+        <div className="relative z-10 max-w-md w-full bg-gray-50 border border-gray-200 backdrop-blur-xl rounded-2xl p-8 text-center space-y-4 shadow-2xl">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-700 text-[11px] font-semibold tracking-widest uppercase">
             Sessão Necessária
           </div>
-          <h1 className="text-2xl font-extrabold text-white">Acesso Restrito</h1>
-          <p className="text-xs text-gray-400 leading-relaxed">
+          <h1 className="text-2xl font-extrabold text-gray-900">Acesso Restrito</h1>
+          <p className="text-xs text-gray-600 leading-relaxed">
             {erroGeral || "Faça login com sua conta de participante para continuar."}
           </p>
           <div className="pt-2">
             <Link
               href="/login"
-              className="inline-block w-full sm:w-auto px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-lg shadow-emerald-950/50"
+              className="inline-block w-full sm:w-auto px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-lg shadow-emerald-900/10"
             >
               Ir para Login
             </Link>
@@ -211,12 +198,12 @@ function ConteudoPainelEquipe() {
   }
 
   return (
-      <div className="painel-vidro min-h-screen bg-[#0A1110] text-gray-300 relative">
+      <div className="min-h-screen bg-[#F6F9F8] text-gray-700 relative">
       <FundoPadrao />
 
       {/* Barra Superior Institucional */}
-      <header className="bg-[#0A1110]/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-30">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+      <header className="bg-[#F6F9F8]/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Link
               href="/"
@@ -225,10 +212,10 @@ function ConteudoPainelEquipe() {
               IA
             </Link>
             <div>
-              <h1 className="text-base font-extrabold text-white leading-tight">
-                Hackathon IA Amazônia — Área do Participante
+              <h1 className="text-base font-extrabold text-gray-900 leading-tight">
+                Área do Participante
               </h1>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-600">
                 {usuario.nome} ({usuario.email})
               </p>
             </div>
@@ -238,7 +225,7 @@ function ConteudoPainelEquipe() {
             <BadgeSituacaoConta situacao={usuario.situacao_conta} />
             <Link
               href="/"
-              className="px-3.5 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-semibold text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+              className="px-3.5 py-1.5 rounded-lg bg-gray-50 border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
             >
               Página Inicial
             </Link>
@@ -246,23 +233,23 @@ function ConteudoPainelEquipe() {
         </div>
       </header>
 
-      <main className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6">
         {erroGeral && (
           <div
             role="alert"
-            className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs"
+            className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-700 text-xs"
           >
             {erroGeral}
           </div>
         )}
 
         {/* EQP-03: Seletor Explícito de Equipe / Edição */}
-        <section className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-5 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <section className="bg-gray-50 border border-gray-200 backdrop-blur-md rounded-2xl p-5 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">
               Contexto de Edição e Equipe (EQP-03)
             </p>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-xs text-gray-600 mt-0.5">
               {minhasEquipes.length === 0
                 ? "Você ainda não participa de nenhuma equipe."
                 : minhasEquipes.length === 1
@@ -280,7 +267,7 @@ function ConteudoPainelEquipe() {
                 id="seletor-equipe-ativa"
                 value={equipeSelecionadaId}
                 onChange={(e) => selecionarEquipe(e.target.value)}
-                className="px-3.5 py-2 rounded-lg bg-[#0A1110] border border-white/15 text-xs font-semibold text-white min-w-[260px] focus:outline-none focus:border-emerald-500"
+                className="px-3.5 py-2 rounded-lg bg-[#F6F9F8] border border-gray-200 text-xs font-semibold text-gray-900 min-w-[260px] focus:outline-none focus:border-emerald-500"
               >
                 {minhasEquipes.length > 1 && (
                   <option value="">-- Escolha uma equipe / edição --</option>
@@ -298,15 +285,15 @@ function ConteudoPainelEquipe() {
         {/* Navegação de Abas (EQP-06) */}
         <nav
           aria-label="Navegação do painel do participante"
-          className="flex flex-wrap gap-2 border-b border-white/10 pb-3"
+          className="flex flex-wrap gap-2 border-b border-gray-200 pb-3"
         >
           <button
             type="button"
             onClick={() => setAbaAtiva("visao-geral")}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
               abaAtiva === "visao-geral"
-                ? "bg-emerald-600 text-white shadow-md shadow-emerald-950/50"
-                : "bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 hover:text-white"
+                ? "bg-emerald-600 text-white shadow-md shadow-emerald-900/10"
+                : "bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100 hover:text-white"
             }`}
           >
             Visão Geral
@@ -317,8 +304,8 @@ function ConteudoPainelEquipe() {
             onClick={() => setAbaAtiva("inscricao")}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
               abaAtiva === "inscricao"
-                ? "bg-emerald-600 text-white shadow-md shadow-emerald-950/50"
-                : "bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 hover:text-white"
+                ? "bg-emerald-600 text-white shadow-md shadow-emerald-900/10"
+                : "bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100 hover:text-white"
             }`}
           >
             Inscrição & Integrantes
@@ -329,8 +316,8 @@ function ConteudoPainelEquipe() {
             onClick={() => setAbaAtiva("convites-conta")}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center gap-2 ${
               abaAtiva === "convites-conta"
-                ? "bg-emerald-600 text-white shadow-md shadow-emerald-950/50"
-                : "bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 hover:text-white"
+                ? "bg-emerald-600 text-white shadow-md shadow-emerald-900/10"
+                : "bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100 hover:text-white"
             }`}
           >
             <span>Conta & Convites</span>
@@ -346,8 +333,8 @@ function ConteudoPainelEquipe() {
             onClick={() => setAbaAtiva("proposta")}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
               abaAtiva === "proposta"
-                ? "bg-emerald-600 text-white shadow-md shadow-emerald-950/50"
-                : "bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 hover:text-white"
+                ? "bg-emerald-600 text-white shadow-md shadow-emerald-900/10"
+                : "bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100 hover:text-white"
             }`}
           >
             Proposta (Módulo D)
@@ -358,8 +345,8 @@ function ConteudoPainelEquipe() {
             onClick={() => setAbaAtiva("resultado")}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
               abaAtiva === "resultado"
-                ? "bg-emerald-600 text-white shadow-md shadow-emerald-950/50"
-                : "bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 hover:text-white"
+                ? "bg-emerald-600 text-white shadow-md shadow-emerald-900/10"
+                : "bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100 hover:text-white"
             }`}
           >
             Resultado Científico
@@ -367,9 +354,9 @@ function ConteudoPainelEquipe() {
 
           <span
             title="Disponível após homologação científica e abertura da fase de mentoria"
-            className="px-3.5 py-2 rounded-xl text-xs font-medium bg-white/[0.02] text-gray-500 border border-white/5 cursor-not-allowed"
+            className="px-3.5 py-2 rounded-xl text-xs font-medium bg-white/[0.02] text-gray-500 border border-gray-100 cursor-not-allowed"
           >
-            Entregas, Mentoria & Chat (Fase 2)
+            Entregas & Chat (Fase 2)
           </span>
         </nav>
 
@@ -389,45 +376,42 @@ function ConteudoPainelEquipe() {
                     setAbaAtiva("inscricao");
                   }}
                 />
-                {usuario.situacao_conta === "PENDENTE" ? (
-                  <AvisoConvitesContaPendente />
-                ) : (
-                  <ConvitesRecebidos
-                    situacaoConta={usuario.situacao_conta}
-                    onConviteRespondido={carregarContextoBase}
-                  />
-                )}
+                {/* A conta pendente também vê e responde aos convites (BE-S5-02). */}
+                <ConvitesRecebidos
+                  situacaoConta={usuario.situacao_conta}
+                  onConviteRespondido={carregarContextoBase}
+                />
               </>
             ) : carregandoPainel || !painel ? (
-              <p className="text-xs text-emerald-400 animate-pulse">
+              <p className="text-xs text-emerald-700 animate-pulse">
                 Carregando painel da equipe...
               </p>
             ) : (
               <>
                 {/* Cards de Situações Independentes (Regra 3.3) */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-5 space-y-2.5">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
+                  <div className="bg-gray-50 border border-gray-200 backdrop-blur-md rounded-2xl p-5 space-y-2.5">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">
                       1. Situação da Sua Conta
                     </span>
                     <div>
                       <BadgeSituacaoConta situacao={usuario.situacao_conta} />
                     </div>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-600">
                       {usuario.situacao_conta === "ATIVA"
-                        ? "Vínculo validado pelo Comitê."
+                        ? "Conta ativa. O vínculo é conferido por hackathon, na aba Conta & Convites."
                         : "Aguardando aprovação do comprovante."}
                     </p>
                   </div>
 
-                  <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-5 space-y-2.5">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
+                  <div className="bg-gray-50 border border-gray-200 backdrop-blur-md rounded-2xl p-5 space-y-2.5">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">
                       2. Inscrição da Equipe
                     </span>
                     <div>
                       <BadgeSituacaoEquipe situacao={painel.situacao} />
                     </div>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-600">
                       {painel.situacao === "EM_FORMACAO" &&
                         "Conclua a formação e aceite os termos para enviar."}
                       {painel.situacao === "AGUARDANDO_HOMOLOGACAO" &&
@@ -439,12 +423,12 @@ function ConteudoPainelEquipe() {
                     </p>
                   </div>
 
-                  <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-5 space-y-2.5">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
+                  <div className="bg-gray-50 border border-gray-200 backdrop-blur-md rounded-2xl p-5 space-y-2.5">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">
                       3. Proposta Científica
                     </span>
                     <div>
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-white/5 text-gray-200 border-white/15">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-gray-50 text-gray-800 border-gray-200">
                         {painel.protocolo_proposta
                           ? "Proposta Enviada"
                           : painel.situacao === "NAO_HOMOLOGADA"
@@ -454,13 +438,15 @@ function ConteudoPainelEquipe() {
                               : "Rascunho Liberado"}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-600">
                       {painel.protocolo_proposta
                         ? `Protocolo ${painel.protocolo_proposta.numero}. O resultado aparece na aba Resultado Científico.`
                         : "O rascunho pode ser salvo desde a formação; o envio exige a equipe homologada."}
                     </p>
                   </div>
                 </div>
+
+                <MentorEquipe key={painel.equipe_id} equipeId={painel.equipe_id} />
 
                 {/* Protocolo de Inscrição (se já concluída) */}
                 {painel.protocolo_inscricao && (
@@ -481,26 +467,26 @@ function ConteudoPainelEquipe() {
                 )}
 
                 {/* Pendências da Equipe */}
-                <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-6 shadow-lg space-y-3">
+                <div className="bg-gray-50 border border-gray-200 backdrop-blur-md rounded-2xl p-6 shadow-lg space-y-3">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-base font-bold text-white">
+                    <h2 className="text-base font-bold text-gray-900">
                       Pendências da Equipe ({painel.pendencias.length})
                     </h2>
                     <button
                       type="button"
                       onClick={() => setAbaAtiva("inscricao")}
-                      className="text-xs font-bold text-emerald-400 hover:text-emerald-300 hover:underline cursor-pointer"
+                      className="text-xs font-bold text-emerald-700 hover:text-emerald-700 hover:underline cursor-pointer"
                     >
                       Gerenciar integrantes &rarr;
                     </button>
                   </div>
 
                   {painel.pendencias.length === 0 ? (
-                    <p className="text-xs text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3.5">
+                    <p className="text-xs text-emerald-700 bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3.5">
                       Nenhuma pendência registrada no momento.
                     </p>
                   ) : (
-                    <ul className="space-y-1.5 text-xs text-amber-200 bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 list-disc pl-8">
+                    <ul className="space-y-1.5 text-xs text-amber-800 bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 list-disc pl-8">
                       {painel.pendencias.map((p, i) => (
                         <li key={i}>{p}</li>
                       ))}
@@ -516,14 +502,27 @@ function ConteudoPainelEquipe() {
         {abaAtiva === "inscricao" && (
           <div className="space-y-6">
             {equipeSelecionadaId && painel ? (
-              <GestaoEquipe
-                painel={painel}
-                usuario={usuario}
-                onRecarregarPainel={async () => {
-                  await carregarPainelSelecionado(equipeSelecionadaId);
-                  await carregarContextoBase();
-                }}
-              />
+              <>
+                <GestaoEquipe
+                  painel={painel}
+                  usuario={usuario}
+                  onRecarregarPainel={async () => {
+                    await carregarPainelSelecionado(equipeSelecionadaId);
+                    await carregarContextoBase();
+                  }}
+                />
+                {/* Remonta quando o painel muda, para refletir convites e retiradas. */}
+                <ComposicaoEquipe
+                  key={`${painel.equipe_id}-${painel.integrantes.length}-${painel.situacao}`}
+                  equipeId={painel.equipe_id}
+                  podeEditar={
+                    (painel.voce_e_lider || usuario.papel === "DEV") &&
+                    painel.situacao === "EM_FORMACAO" &&
+                    painel.inscricoes_abertas
+                  }
+                  onAlterada={() => carregarPainelSelecionado(equipeSelecionadaId)}
+                />
+              </>
             ) : (
               <FormCriarEquipe
                 hackathons={hackathons}
@@ -543,53 +542,50 @@ function ConteudoPainelEquipe() {
         {abaAtiva === "convites-conta" && (
           <div className="space-y-6">
             <ComprovanteCard
-              situacaoConta={usuario.situacao_conta}
+              hackathons={hackathons}
+              hackathonInicialId={hackathonIdUrl || painel?.hackathon_id || hackathonCriacaoId}
               onAtualizarUsuario={carregarContextoBase}
             />
-            {usuario.situacao_conta === "PENDENTE" ? (
-              <AvisoConvitesContaPendente />
-            ) : (
-              <ConvitesRecebidos
-                situacaoConta={usuario.situacao_conta}
-                onConviteRespondido={async () => {
-                  await carregarContextoBase();
-                  setAbaAtiva("visao-geral");
-                }}
-              />
-            )}
+            <ConvitesRecebidos
+              situacaoConta={usuario.situacao_conta}
+              onConviteRespondido={async () => {
+                await carregarContextoBase();
+                setAbaAtiva("visao-geral");
+              }}
+            />
           </div>
         )}
 
         {/* ABA 4: PONTE PARA MÓDULO D (PROPOSTA) */}
         {abaAtiva === "proposta" && (
-          <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-6 shadow-lg space-y-4">
-            <h2 className="text-lg font-bold text-white">
+          <div className="bg-gray-50 border border-gray-200 backdrop-blur-md rounded-2xl p-6 shadow-lg space-y-4">
+            <h2 className="text-lg font-bold text-gray-900">
               Proposta Científica da Equipe
             </h2>
             {!painel ? (
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-600">
                 Selecione ou crie uma equipe primeiro para acessar o editor de proposta.
               </p>
             ) : painel.situacao === "NAO_HOMOLOGADA" ? (
-              <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200 space-y-1">
+              <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-800 space-y-1">
                 <p className="font-bold">
                   Proposta bloqueada — Situação atual da equipe: {painel.situacao}
                 </p>
-                <p className="text-gray-300">
+                <p className="text-gray-700">
                   Equipes não homologadas não podem criar, editar nem enviar proposta.
                 </p>
               </div>
             ) : (
               <div className="space-y-3">
-                <p className="text-xs text-gray-300">
+                <p className="text-xs text-gray-700">
                   {painel.situacao === "HOMOLOGADA"
                     ? "Sua equipe está homologada e pode enviar a proposta."
                     : "O líder já pode preencher e salvar o rascunho. O envio definitivo é liberado quando a equipe estiver HOMOLOGADA."}{" "}
-                  Equipe: <strong className="text-white">{painel.nome}</strong>.
+                  Equipe: <strong className="text-gray-900">{painel.nome}</strong>.
                 </p>
                 <Link
                   href={`/proposta?equipe_id=${encodeURIComponent(painel.equipe_id)}`}
-                  className="inline-block px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors shadow-lg shadow-emerald-950/50"
+                  className="inline-block px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors shadow-lg shadow-emerald-900/10"
                 >
                   Abrir Editor da Proposta &rarr;
                 </Link>
@@ -603,7 +599,7 @@ function ConteudoPainelEquipe() {
           (painel ? (
             <ResultadoCientifico key={painel.equipe_id} equipeId={painel.equipe_id} />
           ) : (
-            <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-6 text-xs text-gray-400">
+            <div className="bg-gray-50 border border-gray-200 backdrop-blur-md rounded-2xl p-6 text-xs text-gray-600">
               Selecione ou crie uma equipe para consultar o resultado.
             </div>
           ))}
@@ -616,7 +612,7 @@ export default function PainelEquipePage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#0A1110] flex items-center justify-center text-xs text-emerald-400">
+        <div className="min-h-screen bg-[#F6F9F8] flex items-center justify-center text-xs text-emerald-700">
           Carregando painel...
         </div>
       }

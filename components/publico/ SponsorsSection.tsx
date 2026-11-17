@@ -154,21 +154,21 @@ export default function SponsorsSection() {
   return (
     <section
       id="patrocinadores"
-      className="relative border-t border-white/5 py-20 md:py-28"
+      className="relative border-t border-gray-100 py-20 md:py-28"
     >
       <div className="mx-auto max-w-6xl px-6">
         {/* Cabeçalho da seção */}
         <div className="mb-10 flex flex-col gap-6 md:mb-14 md:flex-row md:items-end md:justify-between">
           <div>
-            <span className="inline-block rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-emerald-400">
+            <span className="inline-block rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-emerald-700">
               Obrigado
             </span>
 
-            <h2 className="mt-4 text-3xl font-bold text-white md:text-4xl">
+            <h2 className="mt-4 text-3xl font-bold text-gray-900 md:text-4xl">
               Nossos patrocinadores
             </h2>
 
-            <p className="mt-3 max-w-xl text-sm leading-relaxed text-gray-400 md:text-base">
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-gray-600 md:text-base">
               Organizações e parceiros que apoiam a construção de soluções de
               inteligência artificial para os desafios da Amazônia.
             </p>
@@ -176,7 +176,7 @@ export default function SponsorsSection() {
 
           <Link
             href="#"
-            className="group inline-flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-6 py-3 text-sm font-bold text-emerald-300 transition-all hover:border-emerald-400/50 hover:bg-emerald-500/20 hover:text-emerald-200 md:w-auto"
+            className="group inline-flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-6 py-3 text-sm font-bold text-emerald-700 transition-all hover:border-emerald-400/50 hover:bg-emerald-500/20 hover:text-emerald-200 md:w-auto"
           >
             Seja um patrocinador
             <ArrowRight
@@ -187,16 +187,16 @@ export default function SponsorsSection() {
         </div>
 
         {/* Grade hierárquica de patrocinadores */}
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white/[0.02]">
           {patrocinadoresPorNivel.map((nivel, indiceNivel) => (
             <div
               key={nivel.rotulo}
               className={`grid grid-cols-1 md:grid-cols-[220px_1fr] ${
-                indiceNivel > 0 ? "border-t border-white/10" : ""
+                indiceNivel > 0 ? "border-t border-gray-200" : ""
               }`}
             >
               {/* Rótulo da categoria */}
-              <div className="border-b border-white/10 px-6 py-5 md:border-b-0 md:border-r">
+              <div className="border-b border-gray-200 px-6 py-5 md:border-b-0 md:border-r">
                 <span className="block text-xs font-semibold uppercase tracking-widest text-gray-500">
                   {nivel.rotulo}
                 </span>
@@ -204,7 +204,7 @@ export default function SponsorsSection() {
 
               {/* Logotipos */}
               <div
-                className="grid gap-px bg-white/10"
+                className="grid gap-px bg-gray-100"
                 style={{
                   gridTemplateColumns: `repeat(${nivel.colunas}, minmax(0, 1fr))`,
                 }}
@@ -212,7 +212,7 @@ export default function SponsorsSection() {
                 {nivel.itens.map((patrocinador) => (
                   <div
                     key={patrocinador.nome}
-                    className="bg-[#0A1110] p-4 md:p-6"
+                    className="bg-[#F6F9F8] p-4 md:p-6"
                   >
                     <LogoPatrocinador
                       patrocinador={patrocinador}

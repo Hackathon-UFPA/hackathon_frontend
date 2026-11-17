@@ -48,6 +48,32 @@ export type StatusHackathon =
   | "FINALIZADO"
   | "CANCELADO";
 export type FaseRubrica = "PROPOSTA" | "PROJETO_FINAL";
+export type TipoOrganizacao = "EMPRESA" | "INSTITUICAO_ENSINO" | "OUTRO";
+
+export const ROTULO_TIPO_ORGANIZACAO: Record<TipoOrganizacao, string> = {
+  EMPRESA: "Empresa",
+  INSTITUICAO_ENSINO: "Instituição de ensino",
+  OUTRO: "Outro",
+};
+
+export interface Organizacao {
+  id: string;
+  nome: string;
+  tipo: TipoOrganizacao;
+  site?: string | null;
+  descricao?: string | null;
+  criado_em?: string | null;
+}
+
+export interface CadastroOrganizacaoRequest {
+  organizacao: {
+    nome: string;
+    tipo: TipoOrganizacao;
+    site?: string | null;
+    descricao?: string | null;
+  };
+  responsavel: { nome: string; email: string; senha: string };
+}
 
 export interface Usuario {
   id: string;
@@ -56,9 +82,16 @@ export interface Usuario {
   papel: PapelUsuario;
   ativo: boolean;
   situacao_conta: SituacaoConta;
+  /** Organização da equipe interna (Organizador, Comitês, Mentor); null para Participante. */
+  organizacao_id?: string | null;
   instituicao?: string | null;
   curso?: string | null;
   periodo?: number | null;
+  /** Só de Mentor. */
+  empresa_parceira?: string | null;
+  area_atuacao?: string | null;
+  /** Null enquanto o e-mail não foi confirmado (informativo: não bloqueia o acesso). */
+  email_confirmado_em?: string | null;
   criado_em?: string | null;
   atualizado_em?: string | null;
 }
@@ -71,7 +104,8 @@ export interface CadastroRequest {
   instituicao: string;
   curso: string;
   periodo: number;
-  comprovante_url: string; // https, termina em .pdf/.png/.jpg/.jpeg
+  /** Link https (.pdf, .png, .jpg) do comprovante de vínculo; a conta nasce pendente até a aprovação. */
+  comprovante_url: string;
 }
 
 export interface TokenResponse {
@@ -172,6 +206,7 @@ export interface ComprovanteAdmin extends Comprovante {
 /** Formato usado pelas telas de comprovante do participante. */
 export interface ComprovanteItem {
   id: string;
+  hackathon_id: string;
   url: string;
   status: StatusComprovante;
   motivo_recusa?: string | null;
@@ -242,6 +277,10 @@ export interface HackathonResponse {
   id: string;
   nome?: string | null;
   tema?: string | null;
+  descricao?: string | null;
+  local?: string | null;
+  organizacao_id?: string | null;
+  organizacao_nome?: string | null;
   data_inicio?: string | null;
   data_fim?: string | null;
   status?: StatusHackathon | null;
@@ -256,7 +295,9 @@ export interface HackathonResponse {
 }
 export type HackathonResumo = HackathonResponse;
 /** Corpo de criação e edição do hackathon (todos os campos opcionais). */
-export type HackathonDados = Partial<Omit<HackathonResponse, "id">>;
+export type HackathonDados = Partial<
+  Omit<HackathonResponse, "id" | "organizacao_id" | "organizacao_nome">
+>;
 
 export interface Proposta {
   id: string;
@@ -295,6 +336,7 @@ export interface SubmissaoResponse {
   atualizado_em?: string | null;
 }
 
+/** O envio é único: a proposta ENVIADA é imutável e não há reenvio nem versões no backend. */
 export interface SubmissaoEnviadaResponse extends SubmissaoResponse {
   protocolo: Protocolo;
   versao?: number | null;
@@ -449,7 +491,7 @@ type Opts = {
   query?: Query;
 };
 
-async function request<T>(
+export async function request<T>(
   path: string,
   { method = "GET", body, auth = true, query }: Opts = {}
 ): Promise<T> {
@@ -546,14 +588,119 @@ export const auth = {
     return t;
   },
 
+  /** Cria a organização e o primeiro Organizador, e já entra com a conta dele. */
+  async cadastrarOrganizacao(dados: CadastroOrganizacaoRequest): Promise<TokenResponse> {
+    const t = await request<TokenResponse>("/auth/cadastro-organizacao", {
+      method: "POST",
+      body: dados,
+      auth: false,
+    });
+    saveSession(t);
+    return t;
+  },
+
   me: () => request<Usuario>("/auth/me"),
-  logout: () => clearSession(), // não há endpoint de logout: o token só expira
+
+  /**
+   * Encerra a sessão no servidor (RF09: invalida todos os tokens da conta, em todos os
+   * aparelhos) e limpa a sessão local. Falha de rede ou token já vencido não impedem a saída.
+   */
+  async logout(): Promise<void> {
+    const token = getToken();
+    clearSession();
+    if (!token) return;
+    try {
+      await fetch(`${API_URL}/auth/logout`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch {
+      /* a sessão local já foi limpa */
+    }
+  },
+
+  /** RF04. A resposta é sempre a mesma, exista ou não conta com o e-mail. */
+  recuperarSenha: (email: string) =>
+    request<MensagemResponse>("/auth/recuperar-senha", {
+      method: "POST",
+      body: { email },
+      auth: false,
+    }),
+
+  /** RF04. O token vem do link do e-mail; a troca encerra todas as sessões abertas. */
+  redefinirSenha: (token: string, senhaNova: string) =>
+    request<void>("/auth/redefinir-senha", {
+      method: "POST",
+      body: { token, senha_nova: senhaNova },
+      auth: false,
+    }),
+
+  /** RF01. Confirma o e-mail (ou a troca de e-mail) pelo token do link. */
+  confirmarEmail: (token: string) =>
+    request<Usuario>("/auth/confirmar-email", { method: "POST", body: { token }, auth: false }),
+};
+
+export interface MensagemResponse {
+  detail: string;
+}
+
+export interface PerfilUpdate {
+  nome?: string;
+  instituicao?: string | null;
+  curso?: string | null;
+  periodo?: number | null;
+  empresa_parceira?: string | null;
+  area_atuacao?: string | null;
+}
+
+/** Atualiza o usuário guardado e avisa o cabeçalho (o evento "storage" só dispara em outras abas). */
+export function atualizarUsuarioDaSessao(usuario: Usuario) {
+  safeSet(USER_KEY, JSON.stringify(usuario));
+  if (isBrowser()) window.dispatchEvent(new Event("storage"));
+}
+
+/** Perfil do usuário logado (RF05). */
+export const perfil = {
+  async obter(): Promise<Usuario> {
+    const u = await request<Usuario>("/me");
+    atualizarUsuarioDaSessao(u);
+    return u;
+  },
+
+  async atualizar(dados: PerfilUpdate): Promise<Usuario> {
+    const u = await request<Usuario>("/me", { method: "PATCH", body: dados });
+    atualizarUsuarioDaSessao(u);
+    return u;
+  },
+
+  /** Exige a senha atual. Todas as sessões anteriores caem; a resposta traz o token novo. */
+  async trocarSenha(senhaAtual: string, senhaNova: string): Promise<void> {
+    const t = await request<TokenResponse>("/me/senha", {
+      method: "POST",
+      body: { senha_atual: senhaAtual, senha_nova: senhaNova },
+    });
+    saveSession(t);
+  },
+
+  /** O e-mail só muda quando o link enviado ao novo endereço for aberto. */
+  trocarEmail: (novoEmail: string, senha: string) =>
+    request<MensagemResponse>("/me/email", {
+      method: "POST",
+      body: { novo_email: novoEmail, senha },
+    }),
+
+  reenviarConfirmacao: () =>
+    request<MensagemResponse>("/me/confirmacao-email", { method: "POST" }),
 };
 
 export const comprovantes = {
   meus: () => request<Comprovante[]>("/comprovantes/meus"),
+  /** Sem `hackathon_id`: vale o hackathon com inscrições abertas, como no cadastro. */
   reenviar: (arquivo_url: string) =>
     request<Comprovante>("/comprovantes", { method: "POST", body: { arquivo_url } }),
+  /** Comprovante de vínculo para participar de um hackathon (também serve após recusa). */
+  enviar: (hackathon_id: string, arquivo_url: string) =>
+    request<Comprovante>("/comprovantes", { method: "POST", body: { hackathon_id, arquivo_url } }),
 
   // Admin (Organizador / Comitê Científico / DEV)
   fila: (q: { status?: StatusComprovante; hackathon_id?: string; limite?: number; deslocamento?: number } = {}) =>
@@ -611,8 +758,61 @@ export const termos = {
 };
 
 export const hackathons = {
-  listar: () => request<HackathonResponse[]>("/hackathons"),
+  /** Vitrine pública (sem login): todas as organizações, sem rascunhos. */
+  listar: (organizacao_id?: string) =>
+    request<HackathonResponse[]>("/hackathons", {
+      auth: false,
+      query: organizacao_id ? { organizacao_id } : undefined,
+    }),
+  /** Público; com sessão, a equipe interna também vê os próprios rascunhos. */
   obter: (id: string) => request<HackathonResponse>(`/hackathons/${id}`),
+  /** Público: equipes homologadas (nome e tamanho, sem integrantes) e contagem por etapa. */
+  equipes: (id: string) =>
+    request<EquipesDoHackathon>(`/hackathons/${id}/equipes`, { auth: false }),
+  /** Painel do gestor: hackathons da organização dele, inclusive rascunhos. */
+  daMinhaOrganizacao: () => request<HackathonResponse[]>("/admin/hackathons"),
+};
+
+export interface EquipePublica {
+  nome: string;
+  integrantes: number;
+  homologada_em?: string | null;
+}
+
+export interface EquipesDoHackathon {
+  homologadas: EquipePublica[];
+  total_homologadas: number;
+  total_aguardando_homologacao: number;
+  total_em_formacao: number;
+}
+
+export const organizacoes = {
+  minha: () => request<Organizacao>("/organizacoes/minha"),
+  editarMinha: (dados: Partial<Omit<Organizacao, "id" | "criado_em">>) =>
+    request<Organizacao>("/organizacoes/minha", { method: "PATCH", body: dados }),
+  obter: (id: string) => request<Organizacao>(`/organizacoes/${id}`, { auth: false }),
+};
+
+export interface TermoPublicacao {
+  tipo: TipoTermo;
+  versao: string;
+  titulo: string;
+  conteudo?: string | null;
+  url?: string | null;
+}
+
+export const termosAdmin = {
+  listar: (hackathonId: string) => request<Termo[]>(`/admin/hackathons/${hackathonId}/termos`),
+  /** O backend cria a versão como rascunho e publica em um segundo passo (RF11). */
+  publicar: async (hackathonId: string, dados: TermoPublicacao) => {
+    const rascunho = await request<Termo>(`/admin/hackathons/${hackathonId}/termos`, {
+      method: "POST",
+      body: dados,
+    });
+    return request<Termo>(`/admin/hackathons/${hackathonId}/termos/${rascunho.id}/publicar`, {
+      method: "POST",
+    });
+  },
 };
 
 export type RecomendacaoAvaliacao = "APROVACAO" | "REPROVACAO";
@@ -692,6 +892,9 @@ export const admin = {
     instituicao?: string | null;
     curso?: string | null;
     periodo?: number | null;
+    empresa_parceira?: string | null;
+    area_atuacao?: string | null;
+    max_equipes?: number | null;
   }) => request<Usuario>("/admin/usuarios", { method: "POST", body: dados }),
   reavaliarEquipes: (hackathonId: string) =>
     request<Reavaliacao>(`/admin/hackathons/${hackathonId}/equipes/reavaliar`, { method: "POST" }),
@@ -798,6 +1001,7 @@ export const moduloCApi = {
     (await comprovantes.meus()).map(
       (c): ComprovanteItem => ({
         id: c.id,
+        hackathon_id: c.hackathon_id,
         url: c.arquivo_url,
         status: c.status,
         motivo_recusa: c.motivo_recusa,
@@ -810,10 +1014,14 @@ export const moduloCApi = {
     await comprovantes.reenviar(url);
   },
 
+  enviarComprovante: async (hackathonId: string, url: string): Promise<void> => {
+    await comprovantes.enviar(hackathonId, url);
+  },
+
   listarMeusConvites: async (): Promise<ConviteRecebido[]> => {
     const [lista, edicoes] = await Promise.all([
       convites.meus(),
-      // Conta pendente recebe 403 em /hackathons: o nome da edição é só complemento.
+      // O nome da edição é só complemento.
       hackathons.listar().catch(() => [] as HackathonResponse[]),
     ]);
     return lista.map(

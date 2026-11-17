@@ -5,7 +5,7 @@ export default function CtaSection() {
   return (
     <section
       id="inscricao"
-      className="relative border-t border-white/5 py-20 md:py-28"
+      className="relative border-t border-gray-100 py-20 md:py-28"
     >
       <div className="mx-auto max-w-5xl px-6">
         <div className="relative overflow-hidden rounded-3xl border border-emerald-500/20 bg-emerald-500/[0.06] px-6 py-16 text-center backdrop-blur-xl md:px-16">
@@ -14,11 +14,11 @@ export default function CtaSection() {
             className="pointer-events-none absolute -top-24 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-emerald-500/20 blur-3xl"
           />
 
-          <span className="relative inline-block rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-emerald-300">
+          <span className="relative inline-block rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-emerald-700">
             Inscrições abertas
           </span>
 
-          <h2 className="relative mt-6 text-3xl font-bold leading-tight text-white md:text-5xl">
+          <h2 className="relative mt-6 text-3xl font-bold leading-tight text-gray-900 md:text-5xl">
             Faça parte da próxima
             <br />
             geração de soluções
@@ -26,7 +26,7 @@ export default function CtaSection() {
             para a Amazônia.
           </h2>
 
-          <p className="relative mx-auto mt-6 max-w-2xl text-sm leading-relaxed text-gray-300 md:text-base">
+          <p className="relative mx-auto mt-6 max-w-2xl text-sm leading-relaxed text-gray-700 md:text-base">
             Forme sua equipe, escolha uma trilha e contribua com soluções de
             inteligência artificial para os desafios socioambientais da região.
           </p>
@@ -42,7 +42,7 @@ export default function CtaSection() {
 
             <Link
               href="/cronograma"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-8 py-4 text-base font-bold text-white backdrop-blur-md transition-all hover:bg-white/10 sm:w-auto"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-8 py-4 text-base font-bold text-gray-900 backdrop-blur-md transition-all hover:bg-gray-100 sm:w-auto"
             >
               Ver cronograma
             </Link>

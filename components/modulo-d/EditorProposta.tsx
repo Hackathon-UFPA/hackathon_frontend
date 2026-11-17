@@ -473,8 +473,8 @@ export function EditorProposta({
 
   if (carregando) {
     return (
-      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-8 text-center backdrop-blur-xl">
-        <p className="font-mono text-xs text-emerald-400">
+      <div className="rounded-2xl border border-gray-200 bg-white/[0.04] p-8 text-center backdrop-blur-xl">
+        <p className="font-mono text-xs text-emerald-700">
           Carregando editor de proposta, temas e rubrica científica...
         </p>
       </div>
@@ -501,13 +501,13 @@ export function EditorProposta({
             role="status"
             className="flex items-start gap-3 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-4 text-xs text-emerald-200"
           >
-            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" />
             <span>{sucesso}</span>
           </div>
         )}
 
         {backupRestaurado && !propostaEnviada && (
-          <div className="flex items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-200">
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-800">
             <span>
               Recuperamos uma edição local não sincronizada deste navegador.
               Clique em <strong>Salvar Rascunho</strong> para gravar no
@@ -518,14 +518,14 @@ export function EditorProposta({
 
         {/* Banners de Permissão / Homologação */}
         {!podeEditar && (
-          <div className="flex items-start gap-3 rounded-2xl border border-white/15 bg-white/5 p-4 text-xs text-gray-300">
-            <Lock className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+          <div className="flex items-start gap-3 rounded-2xl border border-gray-200 bg-gray-50 p-4 text-xs text-gray-700">
+            <Lock className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
             <div>
-              <p className="font-bold text-white">Modo Somente Leitura</p>
-              <p className="mt-0.5 text-gray-400">
+              <p className="font-bold text-gray-900">Modo Somente Leitura</p>
+              <p className="mt-0.5 text-gray-600">
                 Você está visualizando a proposta da equipe{" "}
-                <strong className="text-gray-200">{equipeNome}</strong>. Apenas o{" "}
-                <strong className="text-emerald-400">Líder Técnico</strong> da
+                <strong className="text-gray-800">{equipeNome}</strong>. Apenas o{" "}
+                <strong className="text-emerald-700">Líder Técnico</strong> da
                 equipe pode salvar rascunhos, enviar ou reenviar versões.
               </p>
             </div>
@@ -548,13 +548,13 @@ export function EditorProposta({
         )}
 
         {podeEditar && !equipeHomologada && !equipeNaoHomologada && (
-          <div className="flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-200">
-            <Clock className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+          <div className="flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-800">
+            <Clock className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
             <div>
-              <p className="font-bold text-amber-100">
+              <p className="font-bold text-amber-800">
                 Rascunho Liberado • Envio Aguardando Homologação ({situacaoEquipe})
               </p>
-              <p className="mt-0.5 text-amber-200/80">
+              <p className="mt-0.5 text-amber-800">
                 Você já pode preencher e salvar o rascunho da proposta
                 normalmente. O botão <strong>Enviar Proposta Definitiva</strong>{" "}
                 será habilitado assim que a situação da equipe mudar para{" "}
@@ -569,17 +569,17 @@ export function EditorProposta({
           <section className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-5 backdrop-blur-xl space-y-4">
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
               <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-700">
                   <FileCheck2 className="h-5 w-5" />
                 </div>
                 <div>
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-400">
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-700">
                     Proposta Submetida • Versão {propostaEnviada.versao ?? 1}
                   </span>
-                  <h2 className="text-base font-extrabold text-white">
+                  <h2 className="text-base font-extrabold text-gray-900">
                     Protocolo: {propostaEnviada.protocolo.numero}
                   </h2>
-                  <p className="text-xs text-emerald-200/80">
+                  <p className="text-xs text-emerald-800">
                     Emitido em{" "}
                     {formatarDataBrasilia(propostaEnviada.protocolo.emitido_em)}
                   </p>
@@ -594,7 +594,7 @@ export function EditorProposta({
                     setErro(null);
                     setSucesso(null);
                   }}
-                  className="inline-flex items-center gap-2 rounded-xl border border-emerald-400/50 bg-[#0A1110]/80 px-4 py-2.5 text-xs font-bold text-emerald-300 transition-colors hover:bg-emerald-500 hover:text-black"
+                  className="inline-flex items-center gap-2 rounded-xl border border-emerald-400/50 bg-[#F6F9F8]/80 px-4 py-2.5 text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-500 hover:text-black"
                 >
                   <RefreshCw className="h-3.5 w-3.5" />
                   Editar e Enviar Nova Versão
@@ -603,7 +603,7 @@ export function EditorProposta({
             </div>
 
             {modoReenvio && (
-              <div className="rounded-xl border border-amber-400/30 bg-[#0A1110]/70 p-3 text-xs text-amber-200">
+              <div className="rounded-xl border border-amber-400/30 bg-[#F6F9F8]/70 p-3 text-xs text-amber-800">
                 <strong>Modo de Reenvio Versionado ativo:</strong> altere os
                 campos desejados abaixo e clique em{" "}
                 <strong>Confirmar Reenvio (Nova Versão)</strong>. A versão
@@ -614,23 +614,23 @@ export function EditorProposta({
         )}
 
         {/* Formulário Principal da Proposta */}
-        <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-xl space-y-5">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-4">
+        <section className="rounded-2xl border border-gray-200 bg-white/[0.04] p-6 backdrop-blur-xl space-y-5">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 pb-4">
             <div>
-              <h2 className="text-base font-extrabold text-white">
+              <h2 className="text-base font-extrabold text-gray-900">
                 {propostaEnviada
                   ? modoReenvio
                     ? "Nova Versão da Proposta Científica"
                     : "Conteúdo da Proposta Enviada"
                   : "Rascunho da Proposta Científica"}
               </h2>
-              <p className="text-xs text-gray-400">
-                Equipe: <strong className="text-gray-200">{equipeNome}</strong>
+              <p className="text-xs text-gray-600">
+                Equipe: <strong className="text-gray-800">{equipeNome}</strong>
                 {rascunho?.atualizado_em && !propostaEnviada && (
                   <>
                     {" "}
                     • Último salvamento:{" "}
-                    <span className="text-emerald-400">
+                    <span className="text-emerald-700">
                       {formatarDataBrasilia(rascunho.atualizado_em)}
                     </span>
                   </>
@@ -641,8 +641,8 @@ export function EditorProposta({
             <span
               className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${
                 propostaEnviada
-                  ? "border border-emerald-500/40 bg-emerald-500/15 text-emerald-300"
-                  : "border border-white/15 bg-white/5 text-gray-300"
+                  ? "border border-emerald-500/40 bg-emerald-500/15 text-emerald-700"
+                  : "border border-gray-200 bg-gray-50 text-gray-700"
               }`}
             >
               {propostaEnviada ? "ENVIADA" : "RASCUNHO"}
@@ -653,7 +653,7 @@ export function EditorProposta({
           <div className="space-y-2">
             <label
               htmlFor="campo-tema"
-              className="block text-xs font-bold text-gray-200"
+              className="block text-xs font-bold text-gray-800"
             >
               1. Tema / Desafio da Edição <span className="text-rose-400">*</span>
             </label>
@@ -662,7 +662,7 @@ export function EditorProposta({
               disabled={!formularioEditavel}
               value={temaId}
               onChange={(e) => setTemaId(e.target.value)}
-              className="w-full rounded-xl border border-white/15 bg-[#0A1110] px-3.5 py-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none disabled:opacity-60"
+              className="w-full rounded-xl border border-gray-200 bg-[#F6F9F8] px-3.5 py-2.5 text-xs text-gray-900 focus:border-emerald-500 focus:outline-none disabled:opacity-60"
             >
               <option value="">-- Selecione um tema ativo --</option>
               {temas.map((t) => (
@@ -674,14 +674,14 @@ export function EditorProposta({
 
             {temaSelecionadoObj && (
               <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3.5 text-xs space-y-1.5">
-                <p className="font-bold text-emerald-300">
+                <p className="font-bold text-emerald-700">
                   {temaSelecionadoObj.titulo}
                 </p>
-                <p className="text-gray-300 leading-relaxed">
+                <p className="text-gray-700 leading-relaxed">
                   {temaSelecionadoObj.descricao}
                 </p>
                 {temaSelecionadoObj.contexto && (
-                  <p className="text-gray-400">
+                  <p className="text-gray-600">
                     <strong>Contexto:</strong> {temaSelecionadoObj.contexto}
                   </p>
                 )}
@@ -693,7 +693,7 @@ export function EditorProposta({
           <div className="space-y-2">
             <label
               htmlFor="campo-titulo"
-              className="block text-xs font-bold text-gray-200"
+              className="block text-xs font-bold text-gray-800"
             >
               2. Título da Proposta <span className="text-rose-400">*</span>
             </label>
@@ -705,7 +705,7 @@ export function EditorProposta({
               value={titulo}
               onChange={(e) => setTitulo(e.target.value)}
               placeholder="Ex.: Monitoramento Preditivo de Queimadas com IA na Amazônia"
-              className="w-full rounded-xl border border-white/15 bg-[#0A1110] px-3.5 py-2.5 text-xs text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none disabled:opacity-60"
+              className="w-full rounded-xl border border-gray-200 bg-[#F6F9F8] px-3.5 py-2.5 text-xs text-gray-900 placeholder-gray-500 focus:border-emerald-500 focus:outline-none disabled:opacity-60"
             />
           </div>
 
@@ -713,7 +713,7 @@ export function EditorProposta({
           <div className="space-y-2">
             <label
               htmlFor="campo-descricao"
-              className="block text-xs font-bold text-gray-200"
+              className="block text-xs font-bold text-gray-800"
             >
               3. Resumo Executivo, Problema, Metodologia e Impacto{" "}
               <span className="text-rose-400">*</span>
@@ -725,18 +725,18 @@ export function EditorProposta({
               value={descricao}
               onChange={(e) => setDescricao(e.target.value)}
               placeholder="Descreva o problema abordado, a abordagem científica/técnica, o uso de Inteligência Artificial e o impacto esperado..."
-              className="w-full rounded-xl border border-white/15 bg-[#0A1110] p-3.5 text-xs leading-relaxed text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none disabled:opacity-60"
+              className="w-full rounded-xl border border-gray-200 bg-[#F6F9F8] p-3.5 text-xs leading-relaxed text-gray-900 placeholder-gray-500 focus:border-emerald-500 focus:outline-none disabled:opacity-60"
             />
           </div>
 
           {/* 4. ODS Relacionados */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-gray-200">
+              <span className="text-xs font-bold text-gray-800">
                 4. Objetivos de Desenvolvimento Sustentável (ODS){" "}
                 <span className="text-rose-400">*</span>
               </span>
-              <span className="text-[11px] text-emerald-400">
+              <span className="text-[11px] text-emerald-700">
                 {odsSelecionados.length} selecionado(s)
               </span>
             </div>
@@ -753,14 +753,14 @@ export function EditorProposta({
                     className={`flex items-center gap-2.5 rounded-xl border px-3 py-2 text-left text-xs transition-colors ${
                       ativo
                         ? "border-emerald-400 bg-emerald-500/20 text-white font-semibold"
-                        : "border-white/10 bg-[#0A1110]/70 text-gray-400 hover:border-white/25 hover:text-gray-200"
+                        : "border-gray-200 bg-[#F6F9F8]/70 text-gray-600 hover:border-gray-300 hover:text-gray-800"
                     } disabled:cursor-not-allowed disabled:opacity-65`}
                   >
                     <span
                       className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg font-mono text-[11px] font-bold ${
                         ativo
                           ? "bg-emerald-500 text-black"
-                          : "bg-white/10 text-gray-300"
+                          : "bg-gray-100 text-gray-700"
                       }`}
                     >
                       {ods.numero}
@@ -776,7 +776,7 @@ export function EditorProposta({
           <div className="space-y-2">
             <label
               htmlFor="campo-bases"
-              className="block text-xs font-bold text-gray-200"
+              className="block text-xs font-bold text-gray-800"
             >
               5. Bases de Dados Utilizadas ou Previstas{" "}
               <span className="text-rose-400">*</span>
@@ -788,7 +788,7 @@ export function EditorProposta({
               value={basesDados}
               onChange={(e) => setBasesDados(e.target.value)}
               placeholder="Ex.: INPE (TerraBrasilis / PRODES), IBGE Censo 2022, MapBiomas..."
-              className="w-full rounded-xl border border-white/15 bg-[#0A1110] p-3.5 text-xs text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none disabled:opacity-60"
+              className="w-full rounded-xl border border-gray-200 bg-[#F6F9F8] p-3.5 text-xs text-gray-900 placeholder-gray-500 focus:border-emerald-500 focus:outline-none disabled:opacity-60"
             />
           </div>
 
@@ -796,7 +796,7 @@ export function EditorProposta({
           <div className="space-y-2">
             <label
               htmlFor="campo-doc"
-              className="block text-xs font-bold text-gray-200"
+              className="block text-xs font-bold text-gray-800"
             >
               6. Link de Documento Complementar (Opcional)
             </label>
@@ -808,12 +808,12 @@ export function EditorProposta({
                 value={documentoUrl}
                 onChange={(e) => setDocumentoUrl(e.target.value)}
                 placeholder="https://... (PDF técnico, arquitetura ou anexo)"
-                className="flex-1 rounded-xl border border-white/15 bg-[#0A1110] px-3.5 py-2.5 text-xs text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none disabled:opacity-60"
+                className="flex-1 rounded-xl border border-gray-200 bg-[#F6F9F8] px-3.5 py-2.5 text-xs text-gray-900 placeholder-gray-500 focus:border-emerald-500 focus:outline-none disabled:opacity-60"
               />
 
               {formularioEditavel && (
-                <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-bold text-gray-200 transition-colors hover:border-emerald-400/50 hover:text-white">
-                  <Upload className="h-3.5 w-3.5 text-emerald-400" />
+                <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-xs font-bold text-gray-800 transition-colors hover:border-emerald-400/50 hover:text-gray-900">
+                  <Upload className="h-3.5 w-3.5 text-emerald-700" />
                   <span>{fazendoUpload ? "Enviando..." : "Anexar PDF"}</span>
                   <input
                     type="file"
@@ -831,7 +831,7 @@ export function EditorProposta({
                 href={documentoUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 hover:underline"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:underline"
               >
                 <ExternalLink className="h-3.5 w-3.5" />
                 Abrir documento anexado
@@ -841,16 +841,16 @@ export function EditorProposta({
 
           {/* Barra de Ações */}
           {formularioEditavel && (
-            <div className="flex flex-col justify-end gap-3 border-t border-white/10 pt-5 sm:flex-row">
+            <div className="flex flex-col justify-end gap-3 border-t border-gray-200 pt-5 sm:flex-row">
               {!propostaEnviada ? (
                 <>
                   <button
                     type="button"
                     disabled={salvando || enviando}
                     onClick={handleSalvarRascunho}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-5 py-3 text-xs font-bold text-white transition-colors hover:border-emerald-400/50 hover:bg-white/10 disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-gray-50 px-5 py-3 text-xs font-bold text-gray-900 transition-colors hover:border-emerald-400/50 hover:bg-gray-100 disabled:opacity-50"
                   >
-                    <Save className="h-4 w-4 text-emerald-400" />
+                    <Save className="h-4 w-4 text-emerald-700" />
                     {salvando ? "Salvando Rascunho..." : "Salvar Rascunho"}
                   </button>
 
@@ -888,7 +888,7 @@ export function EditorProposta({
                       preencherFormulario(propostaEnviada);
                       setConfirmarEnvioAberto(false);
                     }}
-                    className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/5 px-5 py-3 text-xs font-bold text-gray-300 hover:bg-white/10"
+                    className="inline-flex items-center justify-center rounded-xl border border-gray-300 bg-gray-50 px-5 py-3 text-xs font-bold text-gray-700 hover:bg-gray-100"
                   >
                     Cancelar Edição
                   </button>
@@ -911,32 +911,32 @@ export function EditorProposta({
 
           {/* Confirmação Explícita antes de Enviar / Reenviar */}
           {confirmarEnvioAberto && (
-            <div className="rounded-2xl border border-emerald-500/40 bg-[#0A1110] p-4 space-y-3">
-              <p className="text-xs font-bold text-white">
+            <div className="rounded-2xl border border-emerald-500/40 bg-[#F6F9F8] p-4 space-y-3">
+              <p className="text-xs font-bold text-gray-900">
                 {propostaEnviada
                   ? "Confirmar envio de nova versão da proposta?"
                   : "Confirmar envio definitivo da proposta?"}
               </p>
               {/* Resumo do que será enviado (PRO-02) */}
-              <dl className="grid grid-cols-1 gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-xs sm:grid-cols-[auto_1fr]">
-                <dt className="font-bold text-gray-400">Tema</dt>
-                <dd className="text-gray-200">{temaSelecionadoObj?.titulo || "—"}</dd>
-                <dt className="font-bold text-gray-400">Título</dt>
-                <dd className="text-gray-200">{titulo.trim() || "—"}</dd>
-                <dt className="font-bold text-gray-400">ODS</dt>
-                <dd className="text-gray-200">{odsSelecionados.join(", ") || "—"}</dd>
-                <dt className="font-bold text-gray-400">Descrição</dt>
-                <dd className="text-gray-200">
+              <dl className="grid grid-cols-1 gap-2 rounded-xl border border-gray-200 bg-white/[0.03] p-3 text-xs sm:grid-cols-[auto_1fr]">
+                <dt className="font-bold text-gray-600">Tema</dt>
+                <dd className="text-gray-800">{temaSelecionadoObj?.titulo || "—"}</dd>
+                <dt className="font-bold text-gray-600">Título</dt>
+                <dd className="text-gray-800">{titulo.trim() || "—"}</dd>
+                <dt className="font-bold text-gray-600">ODS</dt>
+                <dd className="text-gray-800">{odsSelecionados.join(", ") || "—"}</dd>
+                <dt className="font-bold text-gray-600">Descrição</dt>
+                <dd className="text-gray-800">
                   {descricao.trim().length > 220
                     ? `${descricao.trim().slice(0, 220)}…`
                     : descricao.trim() || "—"}
                 </dd>
-                <dt className="font-bold text-gray-400">Bases de dados</dt>
-                <dd className="text-gray-200">{basesDados.trim() || "—"}</dd>
-                <dt className="font-bold text-gray-400">Documento</dt>
-                <dd className="text-gray-200">{documentoUrl.trim() ? "Anexado" : "Nenhum"}</dd>
+                <dt className="font-bold text-gray-600">Bases de dados</dt>
+                <dd className="text-gray-800">{basesDados.trim() || "—"}</dd>
+                <dt className="font-bold text-gray-600">Documento</dt>
+                <dd className="text-gray-800">{documentoUrl.trim() ? "Anexado" : "Nenhum"}</dd>
               </dl>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-600">
                 O servidor registrará esta versão com data e hora oficiais e
                 emitirá um protocolo <strong>PROPOSTA</strong>. A versão enviada
                 não pode ser alterada: dentro do período de propostas, o líder
@@ -959,7 +959,7 @@ export function EditorProposta({
                   type="button"
                   disabled={enviando}
                   onClick={() => setConfirmarEnvioAberto(false)}
-                  className="rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-xs font-bold text-gray-300 hover:bg-white/10"
+                  className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-2 text-xs font-bold text-gray-700 hover:bg-gray-100"
                 >
                   Voltar e Revisar
                 </button>
@@ -970,10 +970,10 @@ export function EditorProposta({
 
         {/* Histórico Imutável de Versões */}
         {versoes.length > 0 && (
-          <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-xl space-y-4">
+          <section className="rounded-2xl border border-gray-200 bg-white/[0.04] p-6 backdrop-blur-xl space-y-4">
             <div className="flex items-center gap-2.5">
-              <History className="h-4 w-4 text-emerald-400" />
-              <h3 className="text-sm font-extrabold text-white">
+              <History className="h-4 w-4 text-emerald-700" />
+              <h3 className="text-sm font-extrabold text-gray-900">
                 Histórico de Versões Enviadas ({versoes.length})
               </h3>
             </div>
@@ -982,25 +982,25 @@ export function EditorProposta({
               {versoes.map((v) => (
                 <div
                   key={v.numero}
-                  className="flex flex-col justify-between gap-3 rounded-xl border border-white/10 bg-[#0A1110]/70 p-4 sm:flex-row sm:items-center"
+                  className="flex flex-col justify-between gap-3 rounded-xl border border-gray-200 bg-[#F6F9F8]/70 p-4 sm:flex-row sm:items-center"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="rounded-md bg-emerald-500/20 px-2 py-0.5 font-mono text-[11px] font-bold text-emerald-300">
+                      <span className="rounded-md bg-emerald-500/20 px-2 py-0.5 font-mono text-[11px] font-bold text-emerald-700">
                         Versão {v.numero}
                       </span>
-                      <span className="font-mono text-xs font-bold text-white">
+                      <span className="font-mono text-xs font-bold text-gray-900">
                         {v.protocolo.numero}
                       </span>
                     </div>
-                    <p className="text-xs font-semibold text-gray-200">
+                    <p className="text-xs font-semibold text-gray-800">
                       {v.titulo || "Sem título"}
                     </p>
                   </div>
 
-                  <div className="text-left text-[11px] text-gray-400 sm:text-right">
+                  <div className="text-left text-[11px] text-gray-600 sm:text-right">
                     <span className="block">Enviada em</span>
-                    <span className="font-medium text-gray-200">
+                    <span className="font-medium text-gray-800">
                       {formatarDataBrasilia(v.enviada_em)}
                     </span>
                   </div>
@@ -1013,21 +1013,21 @@ export function EditorProposta({
 
       {/* Coluna Lateral (1/3): Rubrica Científica da Fase PROPOSTA */}
       <aside className="space-y-6">
-        <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-xl space-y-4">
-          <div className="flex items-center gap-2.5 border-b border-white/10 pb-3.5">
-            <BookOpen className="h-4 w-4 text-emerald-400" />
+        <div className="rounded-2xl border border-gray-200 bg-white/[0.04] p-5 backdrop-blur-xl space-y-4">
+          <div className="flex items-center gap-2.5 border-b border-gray-200 pb-3.5">
+            <BookOpen className="h-4 w-4 text-emerald-700" />
             <div>
-              <h2 className="text-sm font-extrabold text-white">
+              <h2 className="text-sm font-extrabold text-gray-900">
                 Rubrica de Avaliação
               </h2>
-              <p className="text-[11px] text-gray-400">
+              <p className="text-[11px] text-gray-600">
                 Critérios oficiais da fase Proposta
               </p>
             </div>
           </div>
 
           {!rubrica || rubrica.criterios.length === 0 ? (
-            <div className="rounded-xl border border-white/10 bg-[#0A1110]/60 p-4 text-xs text-gray-400">
+            <div className="rounded-xl border border-gray-200 bg-[#F6F9F8]/60 p-4 text-xs text-gray-600">
               A rubrica científica desta edição ainda não foi publicada pelo
               Comitê Científico.
             </div>
@@ -1036,17 +1036,17 @@ export function EditorProposta({
               {rubrica.criterios.map((crit) => (
                 <div
                   key={crit.id}
-                  className="rounded-xl border border-white/10 bg-[#0A1110]/70 p-3.5 space-y-1.5"
+                  className="rounded-xl border border-gray-200 bg-[#F6F9F8]/70 p-3.5 space-y-1.5"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="text-xs font-bold text-white">
+                    <h3 className="text-xs font-bold text-gray-900">
                       {crit.ordem}. {crit.nome}
                     </h3>
-                    <span className="shrink-0 rounded-md border border-emerald-500/30 bg-emerald-500/15 px-2 py-0.5 font-mono text-[11px] font-bold text-emerald-300">
+                    <span className="shrink-0 rounded-md border border-emerald-500/30 bg-emerald-500/15 px-2 py-0.5 font-mono text-[11px] font-bold text-emerald-700">
                       {crit.peso}%
                     </span>
                   </div>
-                  <p className="text-[11px] leading-relaxed text-gray-400">
+                  <p className="text-[11px] leading-relaxed text-gray-600">
                     {crit.descricao}
                   </p>
                   <p className="text-[10px] font-mono text-gray-500">
@@ -1057,12 +1057,12 @@ export function EditorProposta({
             </div>
           )}
 
-          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3.5 text-[11px] text-gray-300 space-y-1">
-            <p className="flex items-center gap-1.5 font-bold text-emerald-300">
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3.5 text-[11px] text-gray-700 space-y-1">
+            <p className="flex items-center gap-1.5 font-bold text-emerald-700">
               <Sparkles className="h-3.5 w-3.5" />
               Dica de Submissão
             </p>
-            <p className="leading-relaxed text-gray-400">
+            <p className="leading-relaxed text-gray-600">
               Alinhe o resumo metodológico e as bases de dados aos pesos da
               rubrica acima antes do envio definitivo.
             </p>

@@ -51,7 +51,7 @@ export default function FaqSection() {
   return (
     <section
       id="faq"
-      className="relative border-t border-white/5 py-20 md:py-28"
+      className="relative border-t border-gray-100 py-20 md:py-28"
     >
       {/* Textura sutil de fundo */}
       <div
@@ -74,18 +74,18 @@ export default function FaqSection() {
                 className="h-px w-8 bg-emerald-500/60"
               />
 
-              <span className="text-xs font-light uppercase tracking-widest text-emerald-400">
+              <span className="text-xs font-light uppercase tracking-widest text-emerald-700">
                 Perguntas frequentes
               </span>
             </div>
 
-            <h2 className="mt-5 text-3xl font-bold leading-tight text-white md:text-4xl">
+            <h2 className="mt-5 text-3xl font-bold leading-tight text-gray-900 md:text-4xl">
               Antes de começar,
               <br />
               vamos conversar.
             </h2>
 
-            <p className="mt-5 text-sm leading-relaxed text-gray-400 md:text-base">
+            <p className="mt-5 text-sm leading-relaxed text-gray-600 md:text-base">
               Reunimos as dúvidas mais comuns sobre inscrição, equipes, trilhas
               e participação no Hackathon IA Amazônia 2027. Se não encontrar a
               resposta que procura, acompanhe os canais oficiais do evento.
@@ -93,11 +93,11 @@ export default function FaqSection() {
 
             <div className="mt-8 flex items-start gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4">
               <Info
-                className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400"
+                className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700"
                 aria-hidden="true"
               />
 
-              <p className="text-sm leading-relaxed text-emerald-100/80">
+              <p className="text-sm leading-relaxed text-emerald-800">
                 As informações da edição serão atualizadas conforme as
                 definições da organização.
               </p>
@@ -106,7 +106,7 @@ export default function FaqSection() {
 
           {/* Coluna direita: acordeão */}
           <div className="lg:col-span-2">
-            <div className="divide-y divide-white/10 border-y border-white/10">
+            <div className="divide-y divide-gray-200 border-y border-gray-200">
               {perguntasFrequentes.map((item, indice) => {
                 const aberto = perguntaAberta === indice;
 
@@ -117,15 +117,15 @@ export default function FaqSection() {
                       onClick={() => alternarPergunta(indice)}
                       aria-expanded={aberto}
                       aria-controls={`faq-resposta-${indice}`}
-                      className="flex w-full items-center justify-between gap-6 py-6 text-left transition-colors hover:text-emerald-300"
+                      className="flex w-full items-center justify-between gap-6 py-6 text-left transition-colors hover:text-emerald-700"
                     >
-                      <span className="text-base font-semibold text-white md:text-lg">
+                      <span className="text-base font-semibold text-gray-900 md:text-lg">
                         {item.pergunta}
                       </span>
 
                       <span
                         aria-hidden="true"
-                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-emerald-400 transition-colors hover:border-emerald-500/40"
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-emerald-700 transition-colors hover:border-emerald-500/40"
                       >
                         {aberto ? (
                           <Minus className="h-4 w-4" />
@@ -144,7 +144,7 @@ export default function FaqSection() {
                       }`}
                     >
                       <div className="overflow-hidden">
-                        <p className="max-w-3xl pr-10 text-sm leading-relaxed text-gray-400 md:text-base">
+                        <p className="max-w-3xl pr-10 text-sm leading-relaxed text-gray-600 md:text-base">
                           {item.resposta}
                         </p>
                       </div>
