@@ -189,11 +189,19 @@ export type AutodeclaracaoEnvio =
   | { tipo: "ESTUDANTE"; instituicao: string; curso: string; periodo: number }
   | { tipo: "PROFISSIONAL"; organizacao: string; cargo: string };
 
-/** Participante (e DEV), com conta pendente inclusive. Vale para a edição com inscrições abertas. */
+/**
+ * Participante (e DEV), com conta pendente inclusive. Sempre por edição (BE-S6-14): a consulta
+ * vale também para edições encerradas (histórico); a declaração exige inscrições abertas.
+ */
 export const autodeclaracao = {
-  obter: () => request<SituacaoAutodeclaracao>("/me/autodeclaracao"),
-  declarar: (dados: AutodeclaracaoEnvio) =>
-    request<Autodeclaracao>("/me/autodeclaracao", { method: "PUT", body: dados }),
+  obter: (hackathonId: string) =>
+    request<SituacaoAutodeclaracao>("/me/autodeclaracao", { query: { hackathon_id: hackathonId } }),
+  declarar: (hackathonId: string, dados: AutodeclaracaoEnvio) =>
+    request<Autodeclaracao>("/me/autodeclaracao", {
+      method: "PUT",
+      body: dados,
+      query: { hackathon_id: hackathonId },
+    }),
 };
 
 /* ───────────────────────────── Cadastro pelo link do convite ───────────────────────────── */

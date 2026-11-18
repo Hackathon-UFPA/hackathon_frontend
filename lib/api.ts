@@ -98,12 +98,24 @@ export interface Usuario {
 export type UsuarioMe = Usuario;
 
 export interface CadastroRequest {
+  /**
+   * Edição em que o comprovante é registrado (BE-S6-14). Sem ela, a API só aceita quando há
+   * uma única edição com inscrições abertas; com mais de uma, responde 409.
+   */
+  hackathon_id?: string | null;
   nome: string;
   email: string;
   senha: string; // 8–128 caracteres, com letra e número
-  instituicao: string;
-  curso: string;
-  periodo: number;
+  /**
+   * RF01: estudante informa instituição, curso e período; profissional, organização e cargo.
+   * Campos do outro tipo dão 422. Sem `tipo`, vale ESTUDANTE.
+   */
+  tipo?: "ESTUDANTE" | "PROFISSIONAL";
+  instituicao?: string | null;
+  curso?: string | null;
+  periodo?: number | null;
+  organizacao?: string | null;
+  cargo?: string | null;
   /** Link https (.pdf, .png, .jpg) do comprovante de vínculo; a conta nasce pendente até a aprovação. */
   comprovante_url: string;
 }
@@ -489,11 +501,13 @@ type Opts = {
   /** false = rota pública: não envia token (evita 401 com token antigo). */
   auth?: boolean;
   query?: Query;
+  /** Cabeçalhos extras (ex.: Idempotency-Key). */
+  headers?: Record<string, string>;
 };
 
 export async function request<T>(
   path: string,
-  { method = "GET", body, auth = true, query }: Opts = {}
+  { method = "GET", body, auth = true, query, headers: extras }: Opts = {}
 ): Promise<T> {
   const params = new URLSearchParams();
   if (query) {
@@ -504,7 +518,7 @@ export async function request<T>(
   const qs = params.toString();
   const url = `${API_URL}${path}${qs ? `?${qs}` : ""}`;
 
-  const headers: Record<string, string> = { Accept: "application/json" };
+  const headers: Record<string, string> = { Accept: "application/json", ...extras };
   if (body !== undefined) headers["Content-Type"] = "application/json";
   if (auth) {
     const token = getToken();
@@ -695,10 +709,10 @@ export const perfil = {
 
 export const comprovantes = {
   meus: () => request<Comprovante[]>("/comprovantes/meus"),
-  /** Sem `hackathon_id`: vale o hackathon com inscrições abertas, como no cadastro. */
-  reenviar: (arquivo_url: string) =>
-    request<Comprovante>("/comprovantes", { method: "POST", body: { arquivo_url } }),
-  /** Comprovante de vínculo para participar de um hackathon (também serve após recusa). */
+  /**
+   * Comprovante de vínculo para participar de um hackathon (também serve após recusa).
+   * Sempre com a edição: sem ela a API escolheria sozinha (BE-S6-14).
+   */
   enviar: (hackathon_id: string, arquivo_url: string) =>
     request<Comprovante>("/comprovantes", { method: "POST", body: { hackathon_id, arquivo_url } }),
 
@@ -715,8 +729,26 @@ export const comprovantes = {
 };
 
 export const equipes = {
-  criar: (hackathon_id: string, nome?: string | null) =>
-    request<Equipe>("/equipes", { method: "POST", body: { hackathon_id, nome: nome ?? null } }),
+  /**
+   * Cria a equipe com o líder. Com `composicao`, a equipe já nasce com a categoria e os
+   * integrantes, e os convites saem na mesma operação (RF18, BE-S5-01/02). A
+   * `idempotencia` evita equipe e convites duplicados se o pedido for repetido.
+   */
+  criar: (
+    hackathon_id: string,
+    nome?: string | null,
+    composicao?: {
+      categoria: "ESTUDANTES" | "PROFISSIONAIS" | "MISTA";
+      tipo_lider?: "ESTUDANTE" | "PROFISSIONAL" | null;
+      integrantes: { nome: string; email: string; tipo_integrante?: "ESTUDANTE" | "PROFISSIONAL" | null }[];
+    },
+    idempotencia?: string
+  ) =>
+    request<Equipe>("/equipes", {
+      method: "POST",
+      body: { hackathon_id, nome: nome ?? null, ...composicao },
+      headers: idempotencia ? { "Idempotency-Key": idempotencia } : undefined,
+    }),
   minhas: () => request<Equipe[]>("/equipes/minhas"),
   obter: (id: string) => request<Equipe>(`/equipes/${id}`),
   renomear: (id: string, nome: string | null) =>
@@ -1010,8 +1042,8 @@ export const moduloCApi = {
       })
     ),
 
-  enviarNovoComprovante: async (url: string): Promise<void> => {
-    await comprovantes.reenviar(url);
+  enviarNovoComprovante: async (hackathonId: string, url: string): Promise<void> => {
+    await comprovantes.enviar(hackathonId, url);
   },
 
   enviarComprovante: async (hackathonId: string, url: string): Promise<void> => {
@@ -1066,8 +1098,12 @@ export const moduloCApi = {
     );
   },
 
-  criarEquipe: (payload: { hackathon_id: string; nome: string }) =>
-    equipes.criar(payload.hackathon_id, payload.nome),
+  criarEquipe: (payload: {
+    hackathon_id: string;
+    nome: string;
+    composicao?: Parameters<typeof equipes.criar>[2];
+    idempotencia?: string;
+  }) => equipes.criar(payload.hackathon_id, payload.nome, payload.composicao, payload.idempotencia),
 
   editarNomeEquipe: (equipeId: string, nome: string) => equipes.renomear(equipeId, nome),
 

@@ -11,10 +11,13 @@ import {
   ApiError,
   auth,
   enviarArquivoComprovante,
+  hackathons,
   ROTULO_TIPO_ORGANIZACAO,
+  type HackathonResponse,
   type PapelUsuario,
   type TipoOrganizacao,
 } from "@/lib/api";
+import { inscricoesAbertas } from "@/components/plataforma/hackathon-util";
 
 const inp =
   "w-full bg-[#F6F9F8] border border-gray-300 rounded-lg p-3 text-gray-900 focus:border-emerald-500 focus:outline-none text-sm";
@@ -54,6 +57,21 @@ function destinoPorPapel(papel: PapelUsuario) {
   return "/";
 }
 
+/**
+ * Edição escolhida antes do cadastro: `?hackathon_id=` direto ou dentro do `?next=`
+ * (o botão "Quero participar" manda `next=/equipe?hackathon_id=...`).
+ */
+function edicaoDaNavegacao(params: URLSearchParams, next: string | null): string {
+  const direto = params.get("hackathon_id");
+  if (direto) return direto;
+  if (!next) return "";
+  try {
+    return new URL(next, "http://local").searchParams.get("hackathon_id") ?? "";
+  } catch {
+    return "";
+  }
+}
+
 /** Só aceita caminhos internos, para o `?next=` não virar redirecionamento aberto. */
 function destinoSeguro(next: string | null): string | null {
   return next && next.startsWith("/") && !next.startsWith("//") ? next : null;
@@ -83,8 +101,15 @@ function AuthPageContent() {
     instituicao: "",
     curso: "",
     periodo: "",
+    organizacao: "",
+    cargo: "",
   });
+  // RF01: estudante ou profissional, com campos diferentes para cada um
+  const [tipoCad, setTipoCad] = useState<"ESTUDANTE" | "PROFISSIONAL">("ESTUDANTE");
   const [comprovante, setComprovante] = useState<File | null>(null);
+  // BE-S6-14: o comprovante do cadastro vale só para a edição escolhida
+  const [edicaoId, setEdicaoId] = useState(() => edicaoDaNavegacao(searchParams, next));
+  const [edicoesAbertas, setEdicoesAbertas] = useState<HackathonResponse[] | null>(null);
   const [org, setOrg] = useState({
     nome: "",
     tipo: "INSTITUICAO_ENSINO" as TipoOrganizacao,
@@ -94,6 +119,18 @@ function AuthPageContent() {
     email: "",
     senha: "",
   });
+
+  useEffect(() => {
+    hackathons
+      .listar()
+      .then((lista) => {
+        const abertas = lista.filter((h) => inscricoesAbertas(h));
+        setEdicoesAbertas(abertas);
+        // Uma só aberta e nada escolhido: já vem marcada
+        setEdicaoId((atual) => atual || (abertas.length === 1 ? abertas[0].id : ""));
+      })
+      .catch(() => setEdicoesAbertas([]));
+  }, []);
 
   useEffect(() => {
     setAba(abaDoParametro());
@@ -149,6 +186,10 @@ function AuthPageContent() {
   // pendente até a organização aprovar o comprovante. A pessoa já consegue entrar.
   const handleCadastro = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!edicaoId) {
+      setErro("Escolha o hackathon de que você quer participar.");
+      return;
+    }
     if (!comprovante) {
       setErro("Anexe o comprovante de vínculo (PDF, PNG ou JPG).");
       return;
@@ -158,16 +199,18 @@ function AuthPageContent() {
       // O arquivo vai direto ao serviço de armazenamento; a API recebe só o link.
       const comprovanteUrl = await enviarArquivoComprovante(comprovante);
       await auth.cadastrar({
+        hackathon_id: edicaoId,
         nome: cad.nome.trim(),
         email,
         senha: cad.senha,
-        instituicao: cad.instituicao.trim(),
-        curso: cad.curso.trim(),
-        periodo: Number(cad.periodo),
+        tipo: tipoCad,
+        ...(tipoCad === "ESTUDANTE"
+          ? { instituicao: cad.instituicao.trim(), curso: cad.curso.trim(), periodo: Number(cad.periodo) }
+          : { organizacao: cad.organizacao.trim(), cargo: cad.cargo.trim() }),
         comprovante_url: comprovanteUrl,
       });
       await auth.login(email, cad.senha);
-      router.push(next ?? "/hackathons");
+      router.push(next ?? `/equipe?hackathon_id=${edicaoId}`);
     });
   };
 
@@ -257,9 +300,40 @@ function AuthPageContent() {
         {aba === "cadastro" && (
           <form onSubmit={handleCadastro} className="space-y-4">
             <p className="text-xs text-gray-600 leading-relaxed">
-              Crie sua conta para participar de hackathons de empresas e universidades. Envie o
-              comprovante de vínculo (matrícula, crachá, contrato): sua conta fica pendente até a
-              organização aprovar, mas você já consegue entrar.
+              Crie sua conta para participar de hackathons de empresas e universidades, como
+              estudante ou profissional. Envie o comprovante de vínculo: sua conta fica pendente
+              até a organização aprovar, mas você já consegue entrar.
+            </p>
+            <Campo label="Hackathon *" erro={fields.hackathon_id}>
+              <select
+                required
+                className={inp}
+                value={edicaoId}
+                onChange={(e) => setEdicaoId(e.target.value)}
+                disabled={edicoesAbertas === null || edicoesAbertas.length === 0}
+              >
+                <option value="">
+                  {edicoesAbertas === null
+                    ? "Carregando..."
+                    : edicoesAbertas.length === 0
+                      ? "Nenhum hackathon com inscrições abertas"
+                      : "Escolha o hackathon..."}
+                </option>
+                {edicoesAbertas?.map((h) => (
+                  <option key={h.id} value={h.id}>
+                    {h.nome || "Hackathon sem nome"}
+                    {h.organizacao_nome ? ` · ${h.organizacao_nome}` : ""}
+                  </option>
+                ))}
+                {/* Veio de um link para uma edição que não está mais aberta: mostra mesmo assim,
+                    e a API responde por que não aceita */}
+                {edicaoId && edicoesAbertas && !edicoesAbertas.some((h) => h.id === edicaoId) && (
+                  <option value={edicaoId}>Hackathon do link (inscrições não estão abertas)</option>
+                )}
+              </select>
+            </Campo>
+            <p className="-mt-2 text-[11px] text-gray-500">
+              O comprovante vai para a organização deste hackathon. Para outro, use a mesma conta depois.
             </p>
             <Campo label="Nome completo *" erro={fields.nome}>
               <input required autoComplete="name" className={inp} value={cad.nome} onChange={(e) => setCad({ ...cad, nome: e.target.value })} />
@@ -270,18 +344,66 @@ function AuthPageContent() {
             <Campo label="Senha *" erro={fields.senha} dica={DICA_SENHA}>
               <input required type="password" autoComplete="new-password" minLength={8} className={inp} value={cad.senha} onChange={(e) => setCad({ ...cad, senha: e.target.value })} />
             </Campo>
-            <div className="grid grid-cols-1 sm:grid-cols-[1fr_6rem] gap-3">
-              <Campo label="Instituição *" erro={fields.instituicao}>
-                <input required className={inp} value={cad.instituicao} onChange={(e) => setCad({ ...cad, instituicao: e.target.value })} />
-              </Campo>
-              <Campo label="Período *" erro={fields.periodo}>
-                <input required type="number" min={1} className={inp} value={cad.periodo} onChange={(e) => setCad({ ...cad, periodo: e.target.value })} />
-              </Campo>
+            <div>
+              <span className={lbl}>Você participa como *</span>
+              <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Tipo de participante">
+                {(
+                  [
+                    ["ESTUDANTE", "Estudante", "Instituição, curso e período"],
+                    ["PROFISSIONAL", "Profissional", "Organização e cargo"],
+                  ] as const
+                ).map(([valor, rotulo, dica]) => (
+                  <button
+                    key={valor}
+                    type="button"
+                    role="radio"
+                    aria-checked={tipoCad === valor}
+                    onClick={() => setTipoCad(valor)}
+                    className={`rounded-lg border px-3 py-2.5 text-left text-sm font-semibold transition-colors cursor-pointer ${
+                      tipoCad === valor
+                        ? "border-emerald-500 bg-emerald-50 text-emerald-800"
+                        : "border-gray-300 bg-white text-gray-700 hover:border-emerald-300"
+                    }`}
+                  >
+                    {rotulo}
+                    <span className="block text-[11px] font-normal text-gray-500">{dica}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-            <Campo label="Curso *" erro={fields.curso}>
-              <input required className={inp} value={cad.curso} onChange={(e) => setCad({ ...cad, curso: e.target.value })} />
-            </Campo>
-            <Campo label="Comprovante de vínculo *" erro={fields.comprovante_url}>
+            {tipoCad === "ESTUDANTE" ? (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-[1fr_6rem] gap-3">
+                  <Campo label="Instituição *" erro={fields.instituicao}>
+                    <input required className={inp} value={cad.instituicao} onChange={(e) => setCad({ ...cad, instituicao: e.target.value })} />
+                  </Campo>
+                  <Campo label="Período *" erro={fields.periodo}>
+                    <input required type="number" min={1} className={inp} value={cad.periodo} onChange={(e) => setCad({ ...cad, periodo: e.target.value })} />
+                  </Campo>
+                </div>
+                <Campo label="Curso *" erro={fields.curso}>
+                  <input required className={inp} value={cad.curso} onChange={(e) => setCad({ ...cad, curso: e.target.value })} />
+                </Campo>
+              </>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Campo label="Organização *" erro={fields.organizacao}>
+                  <input required autoComplete="organization" placeholder="Empresa ou instituição" className={inp} value={cad.organizacao} onChange={(e) => setCad({ ...cad, organizacao: e.target.value })} />
+                </Campo>
+                <Campo label="Cargo *" erro={fields.cargo}>
+                  <input required autoComplete="organization-title" className={inp} value={cad.cargo} onChange={(e) => setCad({ ...cad, cargo: e.target.value })} />
+                </Campo>
+              </div>
+            )}
+            <Campo
+              label="Comprovante de vínculo *"
+              erro={fields.comprovante_url}
+              dica={
+                tipoCad === "ESTUDANTE"
+                  ? "Matrícula, histórico ou carteirinha (PDF, PNG ou JPG)."
+                  : "Crachá, contrato ou declaração da empresa (PDF, PNG ou JPG)."
+              }
+            >
               <input
                 required
                 type="file"
