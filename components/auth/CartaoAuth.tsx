@@ -48,7 +48,7 @@ export default function CartaoAuth({
     <main className="relative min-h-screen text-gray-700 font-sans flex items-center justify-center p-4 sm:p-6 selection:bg-emerald-500/30">
       <FundoAnimado intensidade="suave" />
       <div className="entrar w-full max-w-md bg-white/90 backdrop-blur-md p-6 sm:p-8 rounded-2xl border border-emerald-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)]">
-        <LogoMarca className="mx-auto mb-4 h-10 w-10 drop-shadow-[0_0_18px_rgba(16,185,129,0.5)]" />
+        <LogoMarca className="mx-auto mb-4 h-10 w-10 dark:drop-shadow-[0_0_18px_rgba(16,185,129,0.5)]" />
         <Link
           href="/login"
           className="text-xs text-emerald-600 hover:text-emerald-700 font-semibold mb-6 inline-block"

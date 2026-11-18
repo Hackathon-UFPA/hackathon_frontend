@@ -49,12 +49,8 @@ export default function LandingPage() {
       <FundoAnimado />
       <section className="relative px-4 py-20 sm:px-6 md:py-32">
         <div className="relative mx-auto max-w-4xl text-center">
-          <LogoMarca className="entrar mx-auto mb-8 h-16 w-16 drop-shadow-[0_0_30px_rgba(16,185,129,0.55)]" />
-          <p style={{ animationDelay: "80ms" }} className="entrar inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-emerald-700">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-            Para empresas, universidades e participantes
-          </p>
-          <h1 style={{ animationDelay: "160ms" }} className="entrar mt-8 text-4xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
+          <LogoMarca className="entrar mx-auto mb-8 h-16 w-16 dark:drop-shadow-[0_0_30px_rgba(16,185,129,0.55)]" />
+          <h1 style={{ animationDelay: "160ms" }} className="entrartext-4xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
             Organize e participe de{" "}
             <span className="texto-brilho bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 bg-clip-text text-transparent">
               hackathons

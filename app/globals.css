@@ -1,5 +1,135 @@
 @import "tailwindcss";
 
+/* Variante dark: para classes novas (dark:bg-...) seguirem o botão de tema, e não só o sistema */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ───────────────── TEMA ESCURO (components/layout/AlternarTema.tsx) ─────────────────
+   As páginas usam as cores do Tailwind direto (bg-white, text-gray-900, bg-[#F6F9F8]...).
+   Em vez de duplicar cada classe com dark:, o tema escuro remapeia a paleta aqui:
+   - a escala de cinza é invertida pelas variáveis do Tailwind (vale para texto, fundo e borda);
+   - os tons claros (50 a 200) das cores de destaque viram tons escuros, para fundos e bordas;
+   - os textos escuros das cores de destaque (700 a 900) e as cores fixas em hex são trocados
+     classe a classe, porque as mesmas variáveis também pintam os botões.
+   Com o alto contraste ligado, ele prevalece e o tema escuro fica desligado. */
+
+:root { --fundo-pagina: #F6F9F8; }
+
+html.dark:not(.high-contrast) {
+  color-scheme: dark;
+  --fundo-pagina: #0b1210;
+  --superficie: #121c19;
+
+  --color-gray-50: #16211e;
+  --color-gray-100: #1c2925;
+  --color-gray-200: #2a3a35;
+  --color-gray-300: #3a4c46;
+  --color-gray-400: #6b7f78;
+  --color-gray-500: #93a39d;
+  --color-gray-600: #b3c0bb;
+  --color-gray-700: #cdd7d3;
+  --color-gray-800: #e2e9e6;
+  --color-gray-900: #f1f5f3;
+  --color-gray-950: #fafcfb;
+  --color-slate-600: #b3c0bb;
+
+  --color-emerald-50: #0f2a21;
+  --color-emerald-100: #133a2d;
+  --color-emerald-200: #1b4d3c;
+  --color-amber-50: #2a200c;
+  --color-amber-100: #3a2b0f;
+  --color-amber-200: #4d3912;
+  --color-red-50: #2c1414;
+  --color-red-100: #3d1a1a;
+  --color-red-200: #552222;
+  --color-sky-50: #0e2230;
+  --color-sky-100: #12304a;
+  --color-violet-50: #1e1733;
+  --color-violet-100: #2a1f4a;
+  --color-orange-50: #2c1a0c;
+  --color-teal-50: #0d2826;
+  --color-teal-100: #113633;
+  --color-slate-100: #1c2925;
+}
+
+/* Textos escuros com opacidade (text-emerald-900/70...): a classe com "/" não é a mesma da regra abaixo */
+html.dark:not(.high-contrast) [class*="text-emerald-900/"] { color: rgb(167 243 208 / 0.75); }
+html.dark:not(.high-contrast) [class*="text-emerald-950/"] { color: rgb(209 250 229 / 0.85); }
+
+html.dark:not(.high-contrast) body { background-color: var(--fundo-pagina); }
+
+/* Logo (components/marca/Logo.tsx): versão clara ou escura conforme o tema */
+.logo-escuro { display: none; }
+html.dark:not(.high-contrast) .logo-claro { display: none; }
+html.dark:not(.high-contrast) .logo-escuro { display: block; }
+
+/* Textos claros usados sobre fundos escuros: mantêm a cor original */
+html.dark:not(.high-contrast) .text-emerald-50 { color: #ecfdf5; }
+html.dark:not(.high-contrast) .text-emerald-100 { color: #d1fae5; }
+
+/* Superfícies brancas (cards, inputs, modais) */
+html.dark:not(.high-contrast) :is(.bg-white, .hover\:bg-white:hover) { background-color: var(--superficie); }
+html.dark:not(.high-contrast) [class*="bg-white/"] { background-color: rgb(18 28 25 / 0.85); }
+
+/* Textos escuros das cores de destaque */
+html.dark:not(.high-contrast) :is(.text-emerald-700, .hover\:text-emerald-700:hover) { color: #34d399; }
+html.dark:not(.high-contrast) :is(.text-emerald-800, .hover\:text-emerald-800:hover) { color: #6ee7b7; }
+html.dark:not(.high-contrast) :is(.text-emerald-900, .text-emerald-950, .hover\:text-emerald-900:hover) { color: #a7f3d0; }
+html.dark:not(.high-contrast) :is(.text-amber-700, .hover\:text-amber-700:hover) { color: #fbbf24; }
+html.dark:not(.high-contrast) .text-amber-800 { color: #fcd34d; }
+html.dark:not(.high-contrast) .text-amber-900 { color: #fde68a; }
+html.dark:not(.high-contrast) :is(.text-red-600, .text-red-700, .hover\:text-red-600:hover, .hover\:text-red-700:hover) { color: #f87171; }
+html.dark:not(.high-contrast) .text-red-800 { color: #fca5a5; }
+html.dark:not(.high-contrast) .text-red-900 { color: #fecaca; }
+html.dark:not(.high-contrast) .text-sky-700 { color: #38bdf8; }
+html.dark:not(.high-contrast) .text-sky-800 { color: #7dd3fc; }
+html.dark:not(.high-contrast) .text-violet-700 { color: #a78bfa; }
+html.dark:not(.high-contrast) .text-violet-800 { color: #c4b5fd; }
+html.dark:not(.high-contrast) .text-orange-700 { color: #fb923c; }
+
+/* Cores fixas em hex: fundos */
+html.dark:not(.high-contrast) [class~="bg-[#F6F9F8]"] { background-color: var(--fundo-pagina); }
+html.dark:not(.high-contrast) [class~="bg-[#F6F9F8]/60"] { background-color: rgb(11 18 16 / 0.6); }
+html.dark:not(.high-contrast) [class~="bg-[#F6F9F8]/70"] { background-color: rgb(11 18 16 / 0.7); }
+html.dark:not(.high-contrast) [class~="bg-[#F6F9F8]/80"] { background-color: rgb(11 18 16 / 0.8); }
+html.dark:not(.high-contrast) [class~="bg-[#F6F9F8]/90"] { background-color: rgb(11 18 16 / 0.9); }
+html.dark:not(.high-contrast) [class~="bg-[#F6F9F8]/95"] { background-color: rgb(11 18 16 / 0.95); }
+html.dark:not(.high-contrast) [class~="bg-[#FAF8F5]"] { background-color: var(--superficie); }
+html.dark:not(.high-contrast) :is([class~="bg-[#EDE6D6]"], [class~="bg-[#F5EFE6]"], [class~="bg-[#F1EFEA]"]) { background-color: #1f2a26; }
+html.dark:not(.high-contrast) [class~="bg-[#FDECEA]"] { background-color: #2c1414; }
+html.dark:not(.high-contrast) [class~="bg-[#FDF3E7]"] { background-color: #2a1f12; }
+html.dark:not(.high-contrast) [class~="bg-[#E6F4EA]"] { background-color: #0f2a21; }
+
+/* Cores fixas em hex: degradês que terminam no fundo da página */
+html.dark:not(.high-contrast) [class~="from-[#F6F9F8]"] { --tw-gradient-from: var(--fundo-pagina); }
+html.dark:not(.high-contrast) [class~="via-[#F6F9F8]"] { --tw-gradient-via: var(--fundo-pagina); }
+html.dark:not(.high-contrast) [class~="to-[#F6F9F8]"] { --tw-gradient-to: var(--fundo-pagina); }
+html.dark:not(.high-contrast) [class~="from-[#F6F9F8]/40"] { --tw-gradient-from: rgb(11 18 16 / 0.4); }
+html.dark:not(.high-contrast) [class~="from-[#F6F9F8]/80"] { --tw-gradient-from: rgb(11 18 16 / 0.8); }
+html.dark:not(.high-contrast) [class~="from-[#F6F9F8]/90"] { --tw-gradient-from: rgb(11 18 16 / 0.9); }
+html.dark:not(.high-contrast) [class~="via-[#F6F9F8]/20"] { --tw-gradient-via: rgb(11 18 16 / 0.2); }
+html.dark:not(.high-contrast) [class~="via-[#F6F9F8]/80"] { --tw-gradient-via: rgb(11 18 16 / 0.8); }
+html.dark:not(.high-contrast) [class~="via-[#D7F5E9]"] { --tw-gradient-via: #133a2d; }
+
+/* Cores fixas em hex: textos */
+html.dark:not(.high-contrast) [class~="text-[#1F2421]"] { color: #eef3f1; }
+html.dark:not(.high-contrast) [class~="text-[#3D3A35]"] { color: #d5ddd9; }
+html.dark:not(.high-contrast) [class~="text-[#5C574F]"] { color: #b8c2be; }
+html.dark:not(.high-contrast) [class~="text-[#7A746B]"] { color: #9aa6a1; }
+html.dark:not(.high-contrast) :is([class~="text-[#1B4332]"], [class~="text-[#0B3B2E]"]) { color: #a7f3d0; }
+html.dark:not(.high-contrast) [class~="text-[#2D6A4F]"] { color: #6ee7b7; }
+html.dark:not(.high-contrast) :is([class~="text-[#9B2226]"], [class~="text-[#7F1D1D]"]) { color: #fca5a5; }
+html.dark:not(.high-contrast) :is([class~="text-[#6B4F3B]"], [class~="text-[#8C5E3C]"], [class~="text-[#9C6644]"]) { color: #e3b98f; }
+
+/* Cores fixas em hex: bordas */
+html.dark:not(.high-contrast) :is([class~="border-[#D8CFC0]"], [class~="border-[#E6CCB2]"]) { border-color: #2f3d38; }
+html.dark:not(.high-contrast) [class~="border-[#EDE6D6]"] { border-color: #24312d; }
+html.dark:not(.high-contrast) [class~="divide-[#EDE6D6]"] > :not(:last-child) { border-color: #24312d; }
+html.dark:not(.high-contrast) [class~="border-[#F5C2C7]"] { border-color: #5a2a2a; }
+
+/* Fundo animado mais discreto no escuro */
+html.dark:not(.high-contrast) .fundo-aurora { opacity: 0.3; }
+html.dark:not(.high-contrast) .fundo-trecho { color: rgba(52, 211, 153, 0.3); }
+
 /* ───────────────── ACESSIBILIDADE (components/AccessibilityBar.tsx) ───────────────── */
 
 /* Tamanho do texto: o Tailwind usa rem, então tudo cresce junto */
@@ -108,28 +238,6 @@ html.espacamento-texto p { margin-bottom: 0.25em; }
   100% { transform: translateY(-110vh); opacity: 0; }
 }
 
-/* Cometas de luz cruzando na diagonal */
-.fundo-cometa {
-  position: absolute;
-  left: -20%;
-  width: 260px;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(5, 150, 105, 0.95));
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
-  border-radius: 9999px;
-  transform: rotate(-12deg);
-  opacity: 0;
-  animation-name: cometa-passar;
-  animation-timing-function: ease-in;
-  animation-iteration-count: infinite;
-}
-@keyframes cometa-passar {
-  0%   { transform: translateX(0) rotate(-12deg); opacity: 0; }
-  5%   { opacity: 1; }
-  25%  { transform: translateX(140vw) rotate(-12deg); opacity: 0; }
-  100% { transform: translateX(140vw) rotate(-12deg); opacity: 0; }
-}
-
 /* Entrada do topo da página, com atraso em cascata via style={{ animationDelay }} */
 .entrar {
   animation: entrar-subindo 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -175,14 +283,12 @@ html.espacamento-texto p { margin-bottom: 0.25em; }
   .fundo-grade,
   .fundo-aurora,
   .fundo-trecho,
-  .fundo-cometa,
   .entrar,
   .texto-brilho,
   .logo-faisca {
     animation: none !important;
   }
-  .fundo-trecho,
-  .fundo-cometa { display: none; }
+  .fundo-trecho { display: none; }
   .revelar { opacity: 1; transform: none; transition: none; }
 }
 html.sem-animacao .fundo-grade,
@@ -192,8 +298,7 @@ html.sem-animacao .texto-brilho,
 html.sem-animacao .logo-faisca {
   animation: none !important;
 }
-html.sem-animacao .fundo-trecho,
-html.sem-animacao .fundo-cometa { display: none; }
+html.sem-animacao .fundo-trecho { display: none; }
 html.sem-animacao .revelar { opacity: 1; transform: none; transition: none; }
 html.sem-animacao *,
 html.sem-animacao *::before,

@@ -1,7 +1,7 @@
 /**
  * Fundo animado da plataforma, só com CSS (as animações ficam em app/globals.css):
- * grade em perspectiva deslizando, luzes "aurora" que se deslocam, trechos de código
- * subindo e cometas de luz cruzando a tela. Fica atrás do conteúdo, não recebe cliques e
+ * grade em perspectiva deslizando, luzes "aurora" que se deslocam e
+ * trechos de código subindo pela tela. Fica atrás do conteúdo, não recebe cliques e
  * para tudo quando a pessoa pede "reduzir movimento" no sistema.
  *
  * As posições são fixas (sem Math.random) para o HTML do servidor e do navegador baterem.
@@ -19,11 +19,6 @@ const POSICOES: [number, number, number, number][] = [
   [41, 38, 20, 16], [48, 27, 7, 14], [55, 33, 12, 13], [62, 25, 1, 15], [69, 36, 17, 14],
   [76, 28, 5, 17], [83, 31, 11, 13], [90, 26, 19, 15], [96, 34, 3, 14], [8, 37, 23, 14],
   [37, 30, 26, 15], [58, 39, 29, 13], [79, 33, 24, 16],
-];
-
-const COMETAS: [number, number, number][] = [
-  // [topo %, duração s, atraso s]
-  [10, 7, 0], [34, 9, 3], [58, 8, 6], [22, 10, 9], [76, 9, 12], [46, 11, 15],
 ];
 
 export default function FundoAnimado({ intensidade = "normal" }: { intensidade?: "normal" | "suave" }) {
@@ -58,15 +53,7 @@ export default function FundoAnimado({ intensidade = "normal" }: { intensidade?:
         );
       })}
 
-      {COMETAS.map(([topo, duracao, atraso], i) => (
-        <span
-          key={i}
-          className="fundo-cometa"
-          style={{ top: `${topo}%`, animationDuration: `${duracao}s`, animationDelay: `${atraso}s` }}
-        />
-      ))}
-
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,#F6F9F8_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,var(--fundo-pagina)_100%)]" />
     </div>
   );
 }
