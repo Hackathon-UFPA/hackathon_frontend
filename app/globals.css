@@ -177,6 +177,62 @@ html.espacamento-texto p { margin-bottom: 0.25em; }
   }
 }
 
+/* ───────────────── GRAFISMOS MARAJOARAS (components/marajoara/Grafismos.tsx) ─────────────────
+   Inspirados na cerâmica marajoara, como o logo: grega (linha escalonada), triângulos, losangos
+   e espirais em degrau. Os desenhos são máscaras SVG pintadas com as variáveis abaixo, então
+   trocam de cor junto com o tema. */
+:root {
+  --mj-traco: #1F4D3A;
+  --mj-destaque: #D2693C;
+  --mj-creme: #F3E9D7;
+  --mj-grega: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='10' viewBox='0 0 24 10'%3E%3Cpath d='M0 9H6V1H18V9H24' fill='none' stroke='black' stroke-width='2'/%3E%3C/svg%3E");
+  --mj-triangulos: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 8L6 0.5L11 8Z' fill='black'/%3E%3C/svg%3E");
+  --mj-losangos: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='12' viewBox='0 0 18 12'%3E%3Cpath d='M9 1L14 6L9 11L4 6Z' fill='none' stroke='black' stroke-width='1.6'/%3E%3Cpath d='M9 4.5L10.5 6L9 7.5L7.5 6Z' fill='black'/%3E%3C/svg%3E");
+}
+html.dark:not(.high-contrast) {
+  --mj-traco: #E9DCC3;
+  --mj-destaque: #E07A4F;
+}
+
+.mj-grega, .mj-triangulos, .mj-losangos {
+  mask-repeat: repeat-x;
+  mask-position: left center;
+  -webkit-mask-repeat: repeat-x;
+  -webkit-mask-position: left center;
+}
+.mj-grega {
+  height: 10px;
+  background-color: var(--mj-traco);
+  mask-image: var(--mj-grega); -webkit-mask-image: var(--mj-grega);
+  mask-size: 24px 10px; -webkit-mask-size: 24px 10px;
+}
+.mj-triangulos {
+  height: 8px;
+  background-color: var(--mj-destaque);
+  mask-image: var(--mj-triangulos); -webkit-mask-image: var(--mj-triangulos);
+  mask-size: 12px 8px; -webkit-mask-size: 12px 8px;
+}
+.mj-losangos {
+  height: 12px;
+  background-color: var(--mj-destaque);
+  mask-image: var(--mj-losangos); -webkit-mask-image: var(--mj-losangos);
+  mask-size: 18px 12px; -webkit-mask-size: 18px 12px;
+}
+
+
+/* Canoa da cena do rio (components/marajoara/CenaRio.tsx): balança devagar na água */
+.canoa-balanco {
+  transform-box: fill-box;
+  transform-origin: 50% 80%;
+  animation: canoa-balancar 4.5s ease-in-out infinite alternate;
+}
+@keyframes canoa-balancar {
+  from { transform: translateY(0) rotate(-0.8deg); }
+  to   { transform: translateY(3px) rotate(0.8deg); }
+}
+@media (prefers-reduced-motion: reduce) { .canoa-balanco { animation: none; } }
+html.sem-animacao .canoa-balanco { animation: none !important; }
+
 /* ───────────────── FUNDO ANIMADO E ANIMAÇÕES DA PLATAFORMA ─────────────────
    components/plataforma/FundoAnimado.tsx e Revelar.tsx. Tudo para com
    prefers-reduced-motion (no fim deste bloco). */
@@ -231,11 +287,17 @@ html.espacamento-texto p { margin-bottom: 0.25em; }
   animation-iteration-count: infinite;
   will-change: transform, opacity;
 }
+/* Trechos presos a uma seção (home): sobem só a altura dela e somem nas bordas */
+.trechos-secao {
+  --trecho-distancia: 46rem;
+  mask-image: linear-gradient(to top, transparent, black 12%, black 80%, transparent);
+  -webkit-mask-image: linear-gradient(to top, transparent, black 12%, black 80%, transparent);
+}
 @keyframes trecho-subir {
   0%   { transform: translateY(0); opacity: 0; }
   10%  { opacity: 1; }
   85%  { opacity: 1; }
-  100% { transform: translateY(-110vh); opacity: 0; }
+  100% { transform: translateY(calc(-1 * var(--trecho-distancia, 110vh))); opacity: 0; }
 }
 
 /* Entrada do topo da página, com atraso em cascata via style={{ animationDelay }} */

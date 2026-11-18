@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSyncExternalStore } from "react";
 import FundoAnimado from "@/components/plataforma/FundoAnimado";
 import { LogoMarca } from "@/components/marca/Logo";
+import { CantoMarajoara } from "@/components/marajoara/Grafismos";
 
 export const inp =
   "w-full bg-[#F6F9F8] border border-gray-300 rounded-lg p-3 text-gray-900 focus:border-emerald-500 focus:outline-none text-sm";
@@ -47,7 +48,9 @@ export default function CartaoAuth({
   return (
     <main className="relative min-h-screen text-gray-700 font-sans flex items-center justify-center p-4 sm:p-6 selection:bg-emerald-500/30">
       <FundoAnimado intensidade="suave" />
-      <div className="entrar w-full max-w-md bg-white/90 backdrop-blur-md p-6 sm:p-8 rounded-2xl border border-emerald-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)]">
+      <div className="entrar relative w-full max-w-md bg-white/90 backdrop-blur-md p-6 sm:p-8 rounded-2xl border border-emerald-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)]">
+        <CantoMarajoara canto="sup-esq" className="h-9 w-9 opacity-50" />
+        <CantoMarajoara canto="inf-dir" className="h-9 w-9 opacity-50" />
         <LogoMarca className="mx-auto mb-4 h-10 w-10 dark:drop-shadow-[0_0_18px_rgba(16,185,129,0.5)]" />
         <Link
           href="/login"

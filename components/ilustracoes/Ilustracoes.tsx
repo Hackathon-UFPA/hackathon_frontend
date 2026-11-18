@@ -1,13 +1,15 @@
 /**
- * Ilustrações de traço da plataforma (desenhos próprios): contorno escuro, preenchimento branco
- * e detalhes em verde. Todas usam o mesmo viewBox (120 x 100) para alinharem nos cards.
+ * Ilustrações da plataforma (desenhos próprios) no estilo marajoara do logo: formas
+ * geométricas de cantos retos, traço verde-escuro, preenchimento creme e detalhes em terracota,
+ * com os motivos da cerâmica (grega em degrau, fileira de triângulos, losangos).
+ * Todas usam o mesmo viewBox (120 x 100) para alinharem nos cards.
  * São decorativas (aria-hidden): o texto ao lado é que descreve a funcionalidade.
  */
 
-const TRACO = "#0B3B2E";
-const VERDE = "#10B981";
-const VERDE_CLARO = "#A7F3D0";
-const FUNDO = "#FFFFFF";
+const TRACO = "#1F4D3A";
+const TERRACOTA = "#D2693C";
+const TERRACOTA_CLARO = "#F0C7AE";
+const CREME = "#F6EEDF";
 
 type Props = { className?: string };
 
@@ -20,11 +22,44 @@ function Svg({ className = "h-24 w-28", children }: Props & { children: React.Re
       fill="none"
       stroke={TRACO}
       strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      strokeLinecap="square"
+      strokeLinejoin="miter"
     >
       {children}
     </svg>
+  );
+}
+
+/** Fileira de triângulos (como a base do logo), apoiada na linha y */
+function Triangulos({ x, y, n, lado = 6, cor = TERRACOTA }: { x: number; y: number; n: number; lado?: number; cor?: string }) {
+  const d = Array.from({ length: n }, (_, i) => {
+    const x0 = x + i * lado;
+    return `M${x0} ${y}l${lado / 2} -${lado * 0.8}l${lado / 2} ${lado * 0.8}z`;
+  }).join("");
+  return <path d={d} fill={cor} stroke="none" />;
+}
+
+/** Grega: linha em degrau, de x até x + largura */
+function Grega({ x, y, largura, passo = 8, altura = 4, cor = TRACO, espessura = 2 }: {
+  x: number; y: number; largura: number; passo?: number; altura?: number; cor?: string; espessura?: number;
+}) {
+  let d = `M${x} ${y}`;
+  for (let px = x, alto = false; px < x + largura; px += passo, alto = !alto) {
+    const fim = Math.min(px + passo, x + largura);
+    d += `H${fim}`;
+    if (fim < x + largura) d += `V${alto ? y : y - altura}`;
+  }
+  return <path d={d} stroke={cor} strokeWidth={espessura} />;
+}
+
+/** Losango com miolo, como a "faísca" do logo */
+function Losango({ cx, cy, r, cor = TERRACOTA, miolo = CREME }: { cx: number; cy: number; r: number; cor?: string; miolo?: string }) {
+  const m = r * 0.4;
+  return (
+    <>
+      <path d={`M${cx} ${cy - r}l${r} ${r}-${r} ${r}-${r}-${r}z`} fill={cor} stroke="none" />
+      <path d={`M${cx} ${cy - m}l${m} ${m}-${m} ${m}-${m}-${m}z`} fill={miolo} stroke="none" />
+    </>
   );
 }
 
@@ -32,13 +67,14 @@ function Svg({ className = "h-24 w-28", children }: Props & { children: React.Re
 export function IlustracaoSite({ className }: Props) {
   return (
     <Svg className={className}>
-      <rect x="14" y="12" width="92" height="60" rx="5" fill={FUNDO} />
-      <rect x="22" y="20" width="76" height="26" rx="3" fill={VERDE} stroke="none" />
-      <path d="M32 29h40M32 36h28" stroke={FUNDO} />
-      <circle cx="86" cy="30" r="3" fill={FUNDO} stroke="none" />
-      <rect x="40" y="53" width="40" height="10" rx="2" fill={TRACO} stroke="none" />
-      <path d="M47 58h26" stroke={FUNDO} strokeWidth={2} />
-      <path d="M50 72v10M70 72v10M40 86h40" />
+      <rect x="14" y="10" width="92" height="62" rx="2" fill={CREME} />
+      <rect x="22" y="18" width="76" height="26" fill={TRACO} stroke="none" />
+      <Grega x={30} y={34} largura={44} cor={CREME} />
+      <Losango cx={86} cy={30} r={6} miolo={TRACO} />
+      <rect x="40" y="52" width="40" height="11" fill={TERRACOTA} stroke="none" />
+      <path d="M48 57.5h24" stroke={CREME} strokeWidth={2} />
+      <path d="M52 72v10M68 72v10M38 84h44" />
+      <Triangulos x={39} y={93} n={7} />
     </Svg>
   );
 }
@@ -47,13 +83,14 @@ export function IlustracaoSite({ className }: Props) {
 export function IlustracaoEquipe({ className }: Props) {
   return (
     <Svg className={className}>
-      <circle cx="32" cy="36" r="9" fill={FUNDO} />
-      <path d="M16 74c0-11 7-18 16-18s16 7 16 18" fill={FUNDO} />
-      <circle cx="88" cy="36" r="9" fill={FUNDO} />
-      <path d="M72 74c0-11 7-18 16-18s16 7 16 18" fill={FUNDO} />
-      <circle cx="60" cy="30" r="11" fill={VERDE_CLARO} />
-      <path d="M40 80c0-14 9-22 20-22s20 8 20 22z" fill={VERDE} />
-      <path d="M52 16l3 4M68 16l-3 4M60 12v5" stroke={VERDE} />
+      <rect x="25" y="28" width="14" height="14" fill={CREME} />
+      <path d="M16 76V62l8-6h16l8 6v14z" fill={CREME} />
+      <rect x="81" y="28" width="14" height="14" fill={CREME} />
+      <path d="M72 76V62l8-6h16l8 6v14z" fill={CREME} />
+      <rect x="51" y="20" width="18" height="18" fill={TERRACOTA_CLARO} />
+      <path d="M38 84V66l10-8h24l10 8v18z" fill={TERRACOTA} />
+      <Triangulos x={45} y={78} n={5} lado={6} cor={CREME} />
+      <Losango cx={60} cy={9} r={5} />
     </Svg>
   );
 }
@@ -62,12 +99,13 @@ export function IlustracaoEquipe({ className }: Props) {
 export function IlustracaoComprovante({ className }: Props) {
   return (
     <Svg className={className}>
-      <rect x="30" y="16" width="52" height="68" rx="3" fill={VERDE_CLARO} stroke="none" transform="translate(6 -6)" />
-      <rect x="30" y="16" width="52" height="68" rx="3" fill={FUNDO} />
-      <circle cx="44" cy="30" r="5" fill={TRACO} stroke="none" />
-      <path d="M54 28h20M54 34h14M38 46h36M38 54h36M38 62h20" />
-      <circle cx="80" cy="70" r="14" fill={VERDE} />
-      <path d="M73 70l5 5 9-10" stroke={FUNDO} strokeWidth={3} />
+      <rect x="36" y="10" width="52" height="68" fill={TERRACOTA_CLARO} stroke="none" />
+      <rect x="30" y="16" width="52" height="68" fill={CREME} />
+      <rect x="38" y="24" width="10" height="10" fill={TRACO} stroke="none" />
+      <path d="M54 26h20M54 32h14M38 46h36M38 54h36M38 62h20" />
+      <Grega x={38} y={74} largura={30} passo={6} altura={3} cor={TERRACOTA} />
+      <Losango cx={82} cy={72} r={15} miolo={TERRACOTA} />
+      <path d="M76 72l4 4 8-8" stroke={CREME} strokeWidth={3} />
     </Svg>
   );
 }
@@ -76,30 +114,35 @@ export function IlustracaoComprovante({ className }: Props) {
 export function IlustracaoAvaliacao({ className }: Props) {
   return (
     <Svg className={className}>
-      <rect x="28" y="16" width="58" height="72" rx="5" fill={FUNDO} />
-      <rect x="44" y="10" width="26" height="12" rx="3" fill={TRACO} stroke="none" />
-      <path d="M38 38l4 4 7-8M38 54l4 4 7-8M38 70l4 4 7-8" stroke={VERDE} strokeWidth={3} />
-      <rect x="55" y="35" width="22" height="6" rx="3" fill={VERDE_CLARO} stroke="none" />
-      <rect x="55" y="35" width="16" height="6" rx="3" fill={VERDE} stroke="none" />
-      <rect x="55" y="51" width="22" height="6" rx="3" fill={VERDE_CLARO} stroke="none" />
-      <rect x="55" y="51" width="20" height="6" rx="3" fill={VERDE} stroke="none" />
-      <rect x="55" y="67" width="22" height="6" rx="3" fill={VERDE_CLARO} stroke="none" />
-      <rect x="55" y="67" width="11" height="6" rx="3" fill={VERDE} stroke="none" />
-      <path d="M96 22l2.5 5 5.5.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9 5.5-.8z" fill={VERDE} />
+      <rect x="28" y="16" width="58" height="74" rx="2" fill={CREME} />
+      <rect x="44" y="10" width="26" height="12" fill={TRACO} stroke="none" />
+      <path d="M37 38l4 4 7-8M37 54l4 4 7-8M37 70l4 4 7-8" stroke={TERRACOTA} strokeWidth={3} />
+      <rect x="55" y="35" width="22" height="6" fill={TERRACOTA_CLARO} stroke="none" />
+      <rect x="55" y="35" width="16" height="6" fill={TRACO} stroke="none" />
+      <rect x="55" y="51" width="22" height="6" fill={TERRACOTA_CLARO} stroke="none" />
+      <rect x="55" y="51" width="20" height="6" fill={TRACO} stroke="none" />
+      <rect x="55" y="67" width="22" height="6" fill={TERRACOTA_CLARO} stroke="none" />
+      <rect x="55" y="67" width="11" height="6" fill={TRACO} stroke="none" />
+      <Triangulos x={36} y={86} n={7} lado={6} />
+      <Losango cx={99} cy={24} r={9} />
     </Svg>
   );
 }
 
-/** Troféu com confetes */
+/** Troféu com losangos ao redor */
 export function IlustracaoTrofeu({ className }: Props) {
   return (
     <Svg className={className}>
-      <path d="M42 18h36v18a18 18 0 0 1-36 0z" fill={VERDE} />
-      <path d="M42 24H32a8 8 0 0 0 10 14M78 24h10a8 8 0 0 1-10 14" />
-      <path d="M60 54v12M48 80h24l-3-14H51z" fill={FUNDO} />
-      <rect x="44" y="80" width="32" height="6" rx="2" fill={TRACO} stroke="none" />
-      <path d="M60 26l2 4 4.4.6-3.2 3.1.8 4.4-4-2.1-4 2.1.8-4.4-3.2-3.1 4.4-.6z" fill={FUNDO} stroke="none" />
-      <path d="M22 16l4 4M98 14l-3 5M18 50h6M96 52h7M28 70l-4 3M92 70l4 3" stroke={VERDE} />
+      <path d="M42 16h36v20c0 10-8 18-18 18s-18-8-18-18z" fill={TERRACOTA} />
+      <Grega x={44} y={30} largura={32} passo={8} altura={5} cor={CREME} />
+      <path d="M42 22H32v8l10 8M78 22h10v8l-10 8" />
+      <path d="M60 54v12M50 66h20l3 14H47z" fill={CREME} />
+      <rect x="42" y="80" width="36" height="7" fill={TRACO} stroke="none" />
+      <Triangulos x={45} y={95} n={5} lado={6} />
+      <Losango cx={22} cy={22} r={6} />
+      <Losango cx={98} cy={20} r={5} />
+      <Losango cx={20} cy={60} r={4} cor={TRACO} />
+      <Losango cx={100} cy={58} r={4} cor={TRACO} />
     </Svg>
   );
 }
@@ -108,18 +151,18 @@ export function IlustracaoTrofeu({ className }: Props) {
 export function IlustracaoCronograma({ className }: Props) {
   return (
     <Svg className={className}>
-      <rect x="20" y="18" width="80" height="66" rx="6" fill={FUNDO} />
-      <path d="M20 34h80" />
-      <rect x="20" y="18" width="80" height="16" rx="6" fill={VERDE} stroke="none" />
-      <path d="M38 12v12M82 12v12" />
-      <circle cx="40" cy="50" r="6" fill={VERDE} stroke="none" />
-      <path d="M37 50l2 2 4-4" stroke={FUNDO} strokeWidth={2} />
-      <circle cx="60" cy="50" r="6" fill={VERDE} stroke="none" />
-      <path d="M57 50l2 2 4-4" stroke={FUNDO} strokeWidth={2} />
-      <circle cx="80" cy="50" r="6" fill={VERDE_CLARO} stroke="none" />
-      <circle cx="40" cy="70" r="6" fill={FUNDO} />
-      <circle cx="60" cy="70" r="6" fill={FUNDO} />
-      <circle cx="80" cy="70" r="6" fill={FUNDO} />
+      <rect x="20" y="18" width="80" height="68" rx="2" fill={CREME} />
+      <rect x="20" y="18" width="80" height="16" fill={TRACO} stroke="none" />
+      <Triangulos x={42} y={31} n={6} lado={6} cor={CREME} />
+      <path d="M36 12v12M84 12v12" />
+      <Losango cx={40} cy={52} r={7} miolo={TERRACOTA} />
+      <path d="M37 52l2 2 4-4" stroke={CREME} strokeWidth={2} />
+      <Losango cx={60} cy={52} r={7} miolo={TERRACOTA} />
+      <path d="M57 52l2 2 4-4" stroke={CREME} strokeWidth={2} />
+      <Losango cx={80} cy={52} r={7} cor={TERRACOTA_CLARO} />
+      <rect x="35" y="66" width="10" height="10" fill={CREME} />
+      <rect x="55" y="66" width="10" height="10" fill={CREME} />
+      <rect x="75" y="66" width="10" height="10" fill={CREME} />
     </Svg>
   );
 }
@@ -128,38 +171,43 @@ export function IlustracaoCronograma({ className }: Props) {
 export function IlustracaoProposta({ className }: Props) {
   return (
     <Svg className={className}>
-      <rect x="44" y="8" width="34" height="42" rx="2" fill={TRACO} stroke="none" />
-      <rect x="50" y="14" width="34" height="42" rx="2" fill={VERDE} stroke="none" />
-      <rect x="56" y="20" width="34" height="42" rx="2" fill={FUNDO} />
+      <rect x="44" y="8" width="34" height="42" fill={TRACO} stroke="none" />
+      <rect x="50" y="14" width="34" height="42" fill={TERRACOTA} stroke="none" />
+      <rect x="56" y="20" width="34" height="42" fill={CREME} />
       <path d="M62 30h22M62 37h22M62 44h14" />
-      <path d="M24 62h72v18H24z" fill={FUNDO} />
-      <path d="M14 80h92l-6 8H20z" fill={VERDE_CLARO} />
-      <circle cx="60" cy="84" r="1.5" fill={TRACO} stroke="none" />
+      <path d="M24 62h72v18H24z" fill={CREME} />
+      <Grega x={30} y={74} largura={60} passo={6} altura={3} cor={TERRACOTA} />
+      <path d="M14 80h92l-6 8H20z" fill={TRACO} />
+      <Triangulos x={36} y={88} n={8} lado={6} cor={CREME} />
     </Svg>
   );
 }
 
-/** Envelope com sino de notificação */
+/** Envelope com aviso */
 export function IlustracaoAviso({ className }: Props) {
   return (
     <Svg className={className}>
-      <rect x="16" y="34" width="66" height="46" rx="4" fill={FUNDO} />
-      <path d="M16 38l33 22 33-22" />
-      <circle cx="86" cy="30" r="16" fill={VERDE} />
-      <path d="M80 34v-5a6 6 0 0 1 12 0v5l2 3H78zM84 40a2 2 0 0 0 4 0" stroke={FUNDO} />
-      <path d="M26 88h14M48 88h24" stroke={VERDE} />
+      <rect x="14" y="34" width="68" height="48" rx="2" fill={CREME} />
+      <path d="M14 38l34 22 34-22" />
+      <Grega x={22} y={76} largura={52} passo={6} altura={3} cor={TERRACOTA} />
+      <Losango cx={88} cy={28} r={18} miolo={TERRACOTA} />
+      <path d="M83 32v-6a5 5 0 0 1 10 0v6l2 3H81zM86 38h4" stroke={CREME} strokeLinecap="round" strokeLinejoin="round" />
+      <Triangulos x={22} y={94} n={9} lado={6} />
     </Svg>
   );
 }
 
-/** Caixa vazia com brilho: "tudo em dia" */
+/** Caixa vazia com losangos: "tudo em dia" */
 export function IlustracaoTudoEmDia({ className }: Props) {
   return (
     <Svg className={className}>
-      <path d="M24 46l36-16 36 16-36 16z" fill={VERDE_CLARO} />
-      <path d="M24 46v28l36 16V62zM96 46v28L60 90V62z" fill={FUNDO} />
-      <path d="M48 70l6 6 12-12" stroke={VERDE} strokeWidth={3.5} />
-      <path d="M60 10v8M42 16l4 6M78 16l-4 6" stroke={VERDE} />
+      <path d="M24 46l36-16 36 16-36 16z" fill={TERRACOTA_CLARO} />
+      <path d="M24 46v28l36 16V62zM96 46v28L60 90V62z" fill={CREME} />
+      <Grega x={68} y={74} largura={20} passo={5} altura={3} cor={TERRACOTA} />
+      <path d="M36 70l6 6 12-12" stroke={TERRACOTA} strokeWidth={3.5} />
+      <Losango cx={60} cy={14} r={7} />
+      <Losango cx={40} cy={22} r={4} cor={TRACO} />
+      <Losango cx={80} cy={22} r={4} cor={TRACO} />
     </Svg>
   );
 }
