@@ -21,7 +21,45 @@ const POSICOES: [number, number, number, number][] = [
   [37, 30, 26, 15], [58, 39, 29, 13], [79, 33, 24, 16],
 ];
 
-export default function FundoAnimado({ intensidade = "normal" }: { intensidade?: "normal" | "suave" }) {
+/**
+ * Trechos de código subindo. No fundo fixo, sobem a tela inteira. Dentro de uma seção
+ * (`className` com position absolute + overflow hidden), sobem só a altura dela: a distância
+ * vem da variável CSS --trecho-distancia, e `escalaDuracao` mantém a velocidade parecida.
+ */
+export function TrechosSubindo({ className, escalaDuracao = 1 }: { className?: string; escalaDuracao?: number }) {
+  const trechos = TRECHOS.map((texto, i) => {
+    const [esquerda, duracao, atraso, tamanho] = POSICOES[i % POSICOES.length];
+    return (
+      <span
+        key={i}
+        className="fundo-trecho"
+        style={{
+          left: `${esquerda}%`,
+          fontSize: tamanho,
+          animationDuration: `${duracao * escalaDuracao}s`,
+          animationDelay: `-${atraso * escalaDuracao}s`,
+        }}
+      >
+        {texto}
+      </span>
+    );
+  });
+  if (!className) return <>{trechos}</>;
+  return (
+    <div aria-hidden="true" className={className}>
+      {trechos}
+    </div>
+  );
+}
+
+export default function FundoAnimado({
+  intensidade = "normal",
+  trechos = true,
+}: {
+  intensidade?: "normal" | "suave";
+  /** false: sem os trechos de código no fundo fixo (a página põe TrechosSubindo onde quiser) */
+  trechos?: boolean;
+}) {
   return (
     <div
       aria-hidden="true"
@@ -35,23 +73,7 @@ export default function FundoAnimado({ intensidade = "normal" }: { intensidade?:
       <div className="fundo-aurora fundo-aurora-2" />
       <div className="fundo-aurora fundo-aurora-3" />
 
-      {TRECHOS.map((texto, i) => {
-        const [esquerda, duracao, atraso, tamanho] = POSICOES[i % POSICOES.length];
-        return (
-          <span
-            key={i}
-            className="fundo-trecho"
-            style={{
-              left: `${esquerda}%`,
-              fontSize: tamanho,
-              animationDuration: `${duracao}s`,
-              animationDelay: `-${atraso}s`,
-            }}
-          >
-            {texto}
-          </span>
-        );
-      })}
+      {trechos && <TrechosSubindo />}
 
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,var(--fundo-pagina)_100%)]" />
     </div>

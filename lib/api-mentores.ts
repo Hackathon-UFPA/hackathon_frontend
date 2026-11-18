@@ -211,23 +211,13 @@ export const mentoria = {
     request<Treinamento>(`/admin/hackathons/${hackathonId}/treinamento/concluir`, { method: "POST" }),
 
   /**
-   * Equipes que podem receber mentor: proposta aprovada no resultado homologado.
-   * A rota de resultado é só do Organizador/DEV; `homologado=false` enquanto não houver resultado.
+   * Equipes que podem receber mentor (RF38): aprovadas no resultado homologado, com o ID.
+   * Comitê Científico, Organizador e DEV. `homologado=false` e lista vazia antes da homologação.
    */
-  async equipesAprovadas(hackathonId: string): Promise<{ homologado: boolean; equipes: EquipeAprovada[] }> {
-    const r = await request<{
-      homologado: boolean;
-      propostas: (EquipeAprovada & { aprovada?: boolean | null })[];
-    }>(`/admin/hackathons/${hackathonId}/resultado`);
-    return {
-      homologado: r.homologado,
-      equipes: r.homologado
-        ? r.propostas
-            .filter((p) => p.aprovada === true)
-            .map(({ equipe_id, equipe_nome, titulo, tema_titulo }) => ({ equipe_id, equipe_nome, titulo, tema_titulo }))
-        : [],
-    };
-  },
+  equipesAprovadas: (hackathonId: string) =>
+    request<{ hackathon_id: string; homologado: boolean; equipes: EquipeAprovada[] }>(
+      `/admin/hackathons/${hackathonId}/mentoria/equipes-aprovadas`
+    ),
 };
 
 /* ───────────────────────────── Apoio às telas ───────────────────────────── */

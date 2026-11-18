@@ -82,7 +82,7 @@ const GRUPOS: { titulo: string; ferramentas: Ferramenta[] }[] = [
     ferramentas: [
       { href: "/admin/treinamento", titulo: "Treinamento das equipes", descricao: "Sessões, materiais e conclusão", icone: GraduationCap, papeis: ["ORGANIZADOR"] },
       { href: "/admin/mentores", titulo: "Mentores", descricao: "Cadastre e convide mentores", icone: Handshake, papeis: ["ORGANIZADOR", "COMITE_CIENTIFICO"] },
-      { href: "/admin/mentoria", titulo: "Mentoria das equipes", descricao: "Escolha o mentor de cada equipe aprovada", icone: UserCheck, papeis: ["ORGANIZADOR"] },
+      { href: "/admin/mentoria", titulo: "Mentoria das equipes", descricao: "Escolha o mentor de cada equipe aprovada", icone: UserCheck, papeis: ["ORGANIZADOR", "COMITE_CIENTIFICO"] },
     ],
   },
   {

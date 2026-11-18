@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { BadgeCheck, IdCard, KeyRound, LogOut, Mail, MailWarning, UserRound } from "lucide-react";
 import ApiErrorAlert from "@/components/feedback/ApiErrorAlert";
 import { Campo, DICA_SENHA, inp } from "@/components/auth/CartaoAuth";
@@ -10,7 +10,11 @@ import { useSession } from "@/lib/useSession";
 import {
   ApiError,
   auth,
+  comprovantes as comprovantesApi,
+  equipes as equipesApi,
   formatarDataBrasilia,
+  hackathons as hackathonsApi,
+  type HackathonResponse,
   perfil as perfilApi,
   type PapelUsuario,
   type PerfilUpdate,
@@ -23,6 +27,7 @@ import {
   type SituacaoAutodeclaracao,
   type TipoIntegrante,
 } from "@/lib/api-participante";
+import { inscricoesAbertas } from "@/components/plataforma/hackathon-util";
 
 const ROTULO_PAPEL: Record<PapelUsuario, string> = {
   PARTICIPANTE: "Participante",
@@ -422,11 +427,41 @@ const ROTULO_STATUS_COMPROVANTE: Record<string, string> = {
   RECUSADO: "recusado",
 };
 
-/** BE-S5-03: a própria pessoa declara o vínculo (estudante ou profissional) na edição aberta. */
+/**
+ * Edições em que a pessoa pode declarar ou consultar o vínculo: as das suas equipes, as dos
+ * seus comprovantes e as com inscrições abertas. A escolhida primeiro é a do `?hackathon_id=`
+ * da URL; depois, a de uma equipe sua com inscrições abertas.
+ */
+async function carregarEdicoes(): Promise<{ edicoes: HackathonResponse[]; inicial: string }> {
+  const [todas, minhas, meus] = await Promise.all([
+    hackathonsApi.listar(),
+    equipesApi.minhas().catch(() => []),
+    comprovantesApi.meus().catch(() => []),
+  ]);
+  const minhasIds = new Set([...minhas.map((e) => e.hackathon_id), ...meus.map((c) => c.hackathon_id)]);
+  const edicoes = todas.filter((h) => minhasIds.has(h.id) || inscricoesAbertas(h));
+  const daUrl = new URLSearchParams(window.location.search).get("hackathon_id");
+  const deEquipeAberta = edicoes.find((h) => minhas.some((e) => e.hackathon_id === h.id) && inscricoesAbertas(h));
+  const inicial =
+    (daUrl && edicoes.some((h) => h.id === daUrl) ? daUrl : null) ??
+    deEquipeAberta?.id ??
+    edicoes.find((h) => minhasIds.has(h.id))?.id ??
+    edicoes[0]?.id ??
+    "";
+  return { edicoes, inicial };
+}
+
+/**
+ * BE-S5-03 / BE-S6-14: a própria pessoa declara o vínculo (estudante ou profissional) em uma
+ * edição escolhida. Edições encerradas ficam só para consulta do histórico.
+ */
 function Vinculo({ usuario }: { usuario: Usuario }) {
+  const [edicoes, setEdicoes] = useState<HackathonResponse[] | null>(null);
+  const [hackathonId, setHackathonId] = useState("");
   const [situacao, setSituacao] = useState<SituacaoAutodeclaracao | null>(null);
-  const [semEdicao, setSemEdicao] = useState(false);
   const [erroCarga, setErroCarga] = useState<unknown>(null);
+  // Só a resposta do último pedido vale: trocar de edição descarta as atrasadas.
+  const pedidoAtual = useRef(0);
   const [tipo, setTipo] = useState<TipoIntegrante>("ESTUDANTE");
   const [form, setForm] = useState({
     instituicao: texto(usuario.instituicao),
@@ -458,14 +493,43 @@ function Vinculo({ usuario }: { usuario: Usuario }) {
   }, []);
 
   useEffect(() => {
-    autodeclaracaoApi
-      .obter()
-      .then(aplicar)
-      .catch((e) => {
-        if (e instanceof ApiError && e.status === 409) setSemEdicao(true);
-        else setErroCarga(e);
-      });
-  }, [aplicar]);
+    carregarEdicoes()
+      .then(({ edicoes: lista, inicial }) => {
+        setEdicoes(lista);
+        setHackathonId(inicial);
+      })
+      .catch(setErroCarga);
+  }, []);
+
+  const carregarSituacao = useCallback(
+    (id: string) => {
+      const pedido = ++pedidoAtual.current;
+      autodeclaracaoApi
+        .obter(id)
+        .then((s) => {
+          if (pedido === pedidoAtual.current) aplicar(s);
+        })
+        .catch((e) => {
+          if (pedido === pedidoAtual.current) setErroCarga(e);
+        });
+    },
+    [aplicar]
+  );
+
+  useEffect(() => {
+    if (hackathonId) carregarSituacao(hackathonId);
+  }, [hackathonId, carregarSituacao]);
+
+  const escolherEdicao = (id: string) => {
+    setSituacao(null);
+    setErroCarga(null);
+    setAviso(null);
+    setFields({});
+    setHackathonId(id);
+  };
+
+  const edicao = edicoes?.find((h) => h.id === hackathonId) ?? null;
+  const podeDeclarar = edicao ? inscricoesAbertas(edicao) : false;
 
   const salvar = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -481,9 +545,14 @@ function Vinculo({ usuario }: { usuario: Usuario }) {
             periodo: Number(form.periodo),
           }
         : { tipo, organizacao: form.organizacao.trim(), cargo: form.cargo.trim() };
+    const id = hackathonId;
     try {
-      await autodeclaracaoApi.declarar(dados);
-      aplicar(await autodeclaracaoApi.obter());
+      await autodeclaracaoApi.declarar(id, dados);
+      const pedido = ++pedidoAtual.current;
+      const nova = await autodeclaracaoApi.obter(id);
+      // A pessoa pode ter trocado de edição enquanto salvava
+      if (pedido !== pedidoAtual.current) return;
+      aplicar(nova);
       setAviso({ tipo: "ok", texto: "Declaração registrada." });
     } catch (err) {
       if (err instanceof ApiError) setFields(err.fields);
@@ -509,11 +578,39 @@ function Vinculo({ usuario }: { usuario: Usuario }) {
       titulo="Meu vínculo"
       descricao="Declare se você participa como estudante ou como profissional. Quem confirma é você; a organização confere o comprovante à parte."
     >
+      {edicoes !== null && edicoes.length > 0 && (
+        <label className="mb-4 block">
+          <span className="mb-1 block text-xs font-semibold uppercase text-gray-600">Hackathon</span>
+          <select className={inp} value={hackathonId} onChange={(e) => escolherEdicao(e.target.value)}>
+            {edicoes.map((h) => (
+              <option key={h.id} value={h.id}>
+                {h.nome || "Hackathon sem nome"}
+                {h.organizacao_nome ? ` · ${h.organizacao_nome}` : ""}
+                {inscricoesAbertas(h) ? "" : " (inscrições encerradas)"}
+              </option>
+            ))}
+          </select>
+          <span className="mt-1 block text-[11px] text-gray-500">
+            A declaração vale só para o hackathon escolhido.
+          </span>
+        </label>
+      )}
+
       {erroCarga !== null ? (
-        <ApiErrorAlert erro={erroCarga} onClose={() => setErroCarga(null)} />
-      ) : semEdicao ? (
+        <ApiErrorAlert erro={erroCarga} onClose={() => setErroCarga(null)} onRetry={
+            hackathonId
+              ? () => {
+                  setErroCarga(null);
+                  carregarSituacao(hackathonId);
+                }
+              : undefined
+          }
+        />
+      ) : edicoes !== null && edicoes.length === 0 ? (
         <p className="rounded-xl border border-gray-200 bg-[#F6F9F8] p-4 text-xs text-gray-600">
-          A declaração vale para a edição com inscrições abertas, e nenhuma está aberta agora.
+          Nenhum hackathon com inscrições abertas e nenhuma equipe sua agora. Escolha um hackathon em{" "}
+          <Link href="/hackathons" className="font-semibold text-emerald-700 hover:underline">Hackathons</Link> para
+          declarar o vínculo.
         </p>
       ) : !situacao ? (
         <p className="text-xs text-emerald-700">Carregando...</p>
@@ -556,7 +653,7 @@ function Vinculo({ usuario }: { usuario: Usuario }) {
               {!situacao.vinculo_comprovado && situacao.comprovante_exigido && (
                 <p className="mt-1 text-[11px] text-gray-600">
                   A equipe só é homologada com o comprovante aprovado.{" "}
-                  <Link href="/equipe" className="font-semibold text-emerald-700 hover:underline">
+                  <Link href={`/equipe?hackathon_id=${hackathonId}`} className="font-semibold text-emerald-700 hover:underline">
                     Enviar
                   </Link>
                 </p>
@@ -572,7 +669,14 @@ function Vinculo({ usuario }: { usuario: Usuario }) {
             </p>
           )}
 
+          {!podeDeclarar && (
+            <p className="mb-4 rounded-lg border border-gray-200 bg-[#F6F9F8] px-3 py-2 text-xs text-gray-600">
+              As inscrições deste hackathon estão encerradas: a declaração fica só para consulta.
+            </p>
+          )}
+
           <form onSubmit={salvar} className="space-y-4">
+            <fieldset disabled={!podeDeclarar} className="space-y-4 disabled:opacity-60">
             <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Tipo de vínculo">
               {(["ESTUDANTE", "PROFISSIONAL"] as TipoIntegrante[]).map((t) => (
                 <button
@@ -630,6 +734,7 @@ function Vinculo({ usuario }: { usuario: Usuario }) {
                 {salvando ? "Salvando..." : situacao.atual ? "Atualizar declaração" : "Declarar vínculo"}
               </button>
             </div>
+            </fieldset>
           </form>
 
           {situacao.historico.length > 1 && (

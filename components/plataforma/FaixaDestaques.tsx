@@ -6,6 +6,8 @@ import { ArrowRight } from "lucide-react";
 import { hackathons } from "@/lib/api";
 import ContadorAnimado from "./ContadorAnimado";
 import Revelar from "./Revelar";
+import { FaixaMarajoara } from "@/components/marajoara/Grafismos";
+import VasoMarajoara from "@/components/marajoara/VasoMarajoara";
 import {
   IlustracaoAvaliacao,
   IlustracaoAviso,
@@ -45,14 +47,19 @@ export default function FaixaDestaques() {
 
   return (
     <section aria-label="Destaques da plataforma" className="relative my-12 overflow-hidden bg-gradient-to-br from-emerald-100 via-[#D7F5E9] to-teal-100">
+      <FaixaMarajoara variante="grega" className="absolute inset-x-0 top-3 opacity-25" />
+      <FaixaMarajoara variante="grega" className="absolute inset-x-0 bottom-3 opacity-25" />
       <div aria-hidden="true" className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-white/40 blur-3xl" />
       <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 right-0 h-72 w-72 rounded-full bg-emerald-300/30 blur-3xl" />
 
       <div className="relative mx-auto grid max-w-7xl grid-cols-1 gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[22rem_1fr] lg:items-center">
         <Revelar>
-          <p className="text-6xl font-extrabold tracking-tight text-[#0B3B2E] sm:text-7xl">
-            {numeros ? <ContadorAnimado valor={numeros.hackathons} /> : "—"}
-          </p>
+          <div className="flex items-end justify-between gap-4">
+            <p className="text-6xl font-extrabold tracking-tight text-[#0B3B2E] sm:text-7xl">
+              {numeros ? <ContadorAnimado valor={numeros.hackathons} /> : "—"}
+            </p>
+            <VasoMarajoara className="h-32 w-auto shrink-0 drop-shadow-[0_10px_18px_rgba(6,78,59,0.25)]" />
+          </div>
           <p className="mt-2 text-2xl font-bold leading-snug text-[#0B3B2E]">
             {numeros?.hackathons === 1 ? "hackathon na plataforma" : "hackathons na plataforma"}
           </p>

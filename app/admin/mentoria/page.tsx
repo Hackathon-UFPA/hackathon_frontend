@@ -191,7 +191,9 @@ function Historico({ equipeId, mentores }: { equipeId: string; mentores: MentorC
 
 export default function AdminMentoriaPage() {
   const { user, pronto } = useSession(["ORGANIZADOR", "COMITE_CIENTIFICO"]);
+  // Confirmar o treinamento é do Organizador/DEV; atribuir mentores é também do Comitê (RF38)
   const ehOrganizador = user?.papel === "ORGANIZADOR" || user?.papel === "DEV";
+  const podeAtribuir = ehOrganizador || user?.papel === "COMITE_CIENTIFICO";
   const hackathons = useHackathonsDaOrganizacao(user);
   const [hackathonId, setHackathonId] = useState("");
   const [treinamento, setTreinamento] = useState<Treinamento | null>(null);
@@ -236,8 +238,7 @@ export default function AdminMentoriaPage() {
     (id: string) => {
       if (!id) return;
       mentoria.treinamento(id).then(setTreinamento).catch(() => setTreinamento(null));
-      // A lista de aprovadas vem do resultado, que é só do Organizador/DEV
-      if (!ehOrganizador) return;
+      if (!podeAtribuir) return;
       mentoria
         .equipesAprovadas(id)
         .then(async (r) => {
@@ -253,7 +254,7 @@ export default function AdminMentoriaPage() {
           setLinhas([]);
         });
     },
-    [ehOrganizador]
+    [podeAtribuir]
   );
 
   useEffect(() => {
@@ -412,15 +413,10 @@ export default function AdminMentoriaPage() {
           )}
         </div>
 
-        {!ehOrganizador ? (
-          <div className="rounded-2xl bg-gray-50 p-6 text-sm text-gray-700">
-            <p className="font-semibold text-gray-900">A lista de equipes aprovadas é aberta só para a organização.</p>
-            <p className="mt-1">
-              O Comitê Científico pode gerenciar os mentores em{" "}
-              <Link href="/admin/mentores" className="font-semibold text-emerald-700 hover:underline">Mentores</Link>; peça a um
-              organizador para fazer a atribuição às equipes.
-            </p>
-          </div>
+        {!podeAtribuir ? (
+          <p className="rounded-2xl bg-gray-50 p-6 text-sm text-gray-700">
+            A atribuição de mentores é do Comitê Científico e da organização.
+          </p>
         ) : !escolhido && hackathons !== null ? (
           <p className="rounded-2xl bg-gray-50 p-6 text-sm text-gray-600">Cadastre um hackathon para começar.</p>
         ) : linhas === null ? (

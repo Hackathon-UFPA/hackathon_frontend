@@ -1,12 +1,15 @@
 import Link from "next/link";
 import { ArrowRight, Building2 } from "lucide-react";
 import HackathonsEmDestaque from "@/components/plataforma/HackathonsEmDestaque";
-import FundoAnimado from "@/components/plataforma/FundoAnimado";
+import FundoAnimado, { TrechosSubindo } from "@/components/plataforma/FundoAnimado";
 import Revelar from "@/components/plataforma/Revelar";
 import { LogoMarca } from "@/components/marca/Logo";
 import { MARCA } from "@/lib/marca";
 import { CARTAO_NO_PAINEL, PAINEL_SECAO } from "@/components/plataforma/painel";
 import FaixaDestaques from "@/components/plataforma/FaixaDestaques";
+import CenaRio from "@/components/marajoara/CenaRio";
+import { DivisorMarajoara, FaixaMarajoara } from "@/components/marajoara/Grafismos";
+
 import {
   IlustracaoAvaliacao,
   IlustracaoComprovante,
@@ -38,6 +41,7 @@ function Passo({ Ilustracao, titulo, texto }: { Ilustracao: typeof IlustracaoSit
         <Ilustracao className="absolute -top-12 left-1/2 h-24 w-28 -translate-x-1/2 transition-transform duration-300 group-hover:-translate-y-1 group-hover:scale-105" />
         <h3 className="text-lg font-bold text-gray-900">{titulo}</h3>
         <p className="mt-2 text-sm leading-relaxed text-gray-600">{texto}</p>
+        <FaixaMarajoara variante="triangulos" className="absolute inset-x-10 bottom-3 opacity-30 transition-opacity group-hover:opacity-80" />
       </div>
     </div>
   );
@@ -46,11 +50,15 @@ function Passo({ Ilustracao, titulo, texto }: { Ilustracao: typeof IlustracaoSit
 export default function LandingPage() {
   return (
     <div className="relative min-h-screen text-gray-700 selection:bg-emerald-500/30">
-      <FundoAnimado />
+      <FundoAnimado trechos={false} />
       <section className="relative px-4 py-20 sm:px-6 md:py-32">
+        {/* Palavras subindo só nesta parte de cima da home */}
+        <TrechosSubindo className="trechos-secao pointer-events-none absolute inset-0 overflow-hidden" escalaDuracao={0.75} />
+        {/* Canoa no canto esquerdo, inclinada; só em telas largas, para não cobrir o texto */}
+        <CenaRio soCanoa className="pointer-events-none absolute bottom-4 left-0 hidden w-[280px] origin-bottom-left -rotate-[8deg] lg:block xl:w-[340px] 2xl:w-[440px]" />
         <div className="relative mx-auto max-w-4xl text-center">
           <LogoMarca className="entrar mx-auto mb-8 h-16 w-16 dark:drop-shadow-[0_0_30px_rgba(16,185,129,0.55)]" />
-          <h1 style={{ animationDelay: "160ms" }} className="entrartext-4xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
+          <h1 style={{ animationDelay: "160ms" }} className="entrar text-4xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
             Organize e participe de{" "}
             <span className="texto-brilho bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 bg-clip-text text-transparent">
               hackathons
@@ -67,6 +75,7 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
 
       <Revelar>
         <HackathonsEmDestaque />
@@ -95,6 +104,8 @@ export default function LandingPage() {
         </Link>
         </div>
       </section>
+
+      <DivisorMarajoara className="my-6" />
 
       <section id="participantes" className="mx-auto max-w-7xl scroll-mt-20 px-4 py-8 sm:px-6">
         <div className={PAINEL_SECAO}>

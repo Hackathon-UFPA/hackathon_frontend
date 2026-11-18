@@ -1,5 +1,7 @@
 import Link from "next/link";
 import Logo from "@/components/marca/Logo";
+import { FaixaMarajoara } from "@/components/marajoara/Grafismos";
+import VasoMarajoara from "@/components/marajoara/VasoMarajoara";
 import { MARCA } from "@/lib/marca";
 
 // Só links para páginas que existem. Termos de uso, privacidade e contato entram aqui quando
@@ -25,13 +27,17 @@ const COLUNAS = [
 
 export default function Rodape() {
   return (
-    <footer className="relative z-10 mt-16 border-t border-gray-200 bg-white/80 backdrop-blur-sm">
+    <footer className="relative z-10 mt-16 bg-white/80 backdrop-blur-sm">
+      <FaixaMarajoara variante="grega" className="opacity-50" />
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-4 py-12 sm:px-6 md:grid-cols-[2fr_1fr_1fr]">
-        <div className="max-w-sm">
-          <Link href="/" aria-label={`${MARCA.nome}: início`} className="inline-block hover:opacity-80">
-            <Logo />
-          </Link>
-          <p className="mt-4 text-sm leading-relaxed text-gray-600">{MARCA.descricao}</p>
+        <div className="flex max-w-lg items-center gap-8">
+          <div className="max-w-sm">
+            <Link href="/" aria-label={`${MARCA.nome}: início`} className="inline-block hover:opacity-80">
+              <Logo />
+            </Link>
+            <p className="mt-4 text-sm leading-relaxed text-gray-600">{MARCA.descricao}</p>
+          </div>
+          <VasoMarajoara className="hidden h-36 w-auto shrink-0 sm:block" />
         </div>
 
         {COLUNAS.map((coluna) => (

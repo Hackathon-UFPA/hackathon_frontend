@@ -13,6 +13,13 @@ import {
   TermoVigente,
   UsuarioMe,
 } from "@/lib/api";
+import { inscricoesAbertas } from "@/components/plataforma/hackathon-util";
+import {
+  ROTULO_CATEGORIA,
+  ROTULO_TIPO_INTEGRANTE,
+  type CategoriaEquipe,
+  type TipoIntegrante,
+} from "@/lib/api-participante";
 import {
   BadgeComprovante,
   BadgeConvite,
@@ -29,6 +36,19 @@ interface FormCriarEquipeProps {
   onEquipeCriada: (novaEquipeId: string) => Promise<void>;
 }
 
+type LinhaIntegrante = { nome: string; email: string; tipo: TipoIntegrante | "" };
+const LINHA_VAZIA: LinhaIntegrante = { nome: "", email: "", tipo: "" };
+const CATEGORIAS = Object.keys(ROTULO_CATEGORIA) as CategoriaEquipe[];
+const TIPOS: TipoIntegrante[] = ["ESTUDANTE", "PROFISSIONAL"];
+const novaChave = () =>
+  typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+const campoCls =
+  "w-full px-3.5 py-2.5 rounded-lg bg-[#FAF8F5] border border-[#D8CFC0] text-sm text-[#1F2421] focus:border-[#2D6A4F] focus:outline-none disabled:opacity-50";
+const rotuloCls = "block text-xs font-bold uppercase tracking-wider text-[#5C574F] mb-1.5";
+
 export function FormCriarEquipe({
   hackathons,
   hackathonSelecionadoId,
@@ -37,23 +57,60 @@ export function FormCriarEquipe({
   onEquipeCriada,
 }: FormCriarEquipeProps) {
   const [nomeEquipe, setNomeEquipe] = useState("");
+  // RF18: o líder inscreve a equipe inteira de uma vez (categoria + integrantes)
+  const [categoria, setCategoria] = useState<CategoriaEquipe>("ESTUDANTES");
+  const [tipoLider, setTipoLider] = useState<TipoIntegrante>("ESTUDANTE");
+  const [integrantes, setIntegrantes] = useState<LinhaIntegrante[]>([LINHA_VAZIA]);
+  // Mesma chave enquanto for o mesmo pedido: repetir após falha de rede não duplica a equipe
+  const [chave, setChave] = useState(novaChave);
   const [criando, setCriando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
-  const edicoesAbertas = hackathons.filter((h) => h.status === "INSCRICOES");
+  // Status e período (RN06): a API recusa edição com inscrições que ainda não abriram ou já fecharam
+  const edicoesAbertas = hackathons.filter((h) => inscricoesAbertas(h));
+  const edicao = edicoesAbertas.find((h) => h.id === hackathonSelecionadoId);
+  const minimo = edicao?.min_integrantes ?? 3;
+  const maximo = edicao?.max_integrantes ?? 5;
+  const mista = categoria === "MISTA";
+  const preenchidos = integrantes.filter((l) => l.email.trim());
+  const total = 1 + preenchidos.length;
+  const bloqueado = situacaoConta === "PENDENTE";
+
+  const alterarLinha = (n: number, campo: keyof LinhaIntegrante, valor: string) => {
+    setIntegrantes((ls) => ls.map((l, i) => (i === n ? { ...l, [campo]: valor } : l)));
+    setChave(novaChave());
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!hackathonSelecionadoId || !nomeEquipe.trim()) return;
+    if (total < minimo || total > maximo) {
+      setErro(`A equipe precisa ter de ${minimo} a ${maximo} pessoas contando com você (agora são ${total}).`);
+      return;
+    }
 
     setCriando(true);
     setErro(null);
+    const tipoDaCategoria: TipoIntegrante | null =
+      categoria === "ESTUDANTES" ? "ESTUDANTE" : categoria === "PROFISSIONAIS" ? "PROFISSIONAL" : null;
     try {
       const criada = await moduloCApi.criarEquipe({
         hackathon_id: hackathonSelecionadoId,
         nome: nomeEquipe.trim(),
+        composicao: {
+          categoria,
+          tipo_lider: mista ? tipoLider : tipoDaCategoria,
+          integrantes: preenchidos.map((l) => ({
+            nome: l.nome.trim(),
+            email: l.email.trim().toLowerCase(),
+            tipo_integrante: mista ? (l.tipo || null) : tipoDaCategoria,
+          })),
+        },
+        idempotencia: chave,
       });
       setNomeEquipe("");
+      setIntegrantes([LINHA_VAZIA]);
+      setChave(novaChave());
       await onEquipeCriada(criada.id);
     } catch (err: unknown) {
       setErro(
@@ -138,6 +195,126 @@ export function FormCriarEquipe({
           />
         </div>
 
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="select-categoria-equipe" className={rotuloCls}>
+              Categoria *
+            </label>
+            <select
+              id="select-categoria-equipe"
+              value={categoria}
+              onChange={(e) => {
+                setCategoria(e.target.value as CategoriaEquipe);
+                setChave(novaChave());
+              }}
+              disabled={bloqueado}
+              className={campoCls}
+            >
+              {CATEGORIAS.map((c) => (
+                <option key={c} value={c}>
+                  {ROTULO_CATEGORIA[c]}
+                </option>
+              ))}
+            </select>
+          </div>
+          {mista && (
+            <div>
+              <label htmlFor="select-tipo-lider" className={rotuloCls}>
+                Seu tipo (líder) *
+              </label>
+              <select
+                id="select-tipo-lider"
+                value={tipoLider}
+                onChange={(e) => {
+                  setTipoLider(e.target.value as TipoIntegrante);
+                  setChave(novaChave());
+                }}
+                disabled={bloqueado}
+                className={campoCls}
+              >
+                {TIPOS.map((t) => (
+                  <option key={t} value={t}>
+                    {ROTULO_TIPO_INTEGRANTE[t]}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+
+        <fieldset disabled={bloqueado} className="space-y-2">
+          <legend className={rotuloCls}>
+            Integrantes além de você ({total} de {minimo} a {maximo}) *
+          </legend>
+          <p className="text-[11px] text-[#5C574F]">
+            Cada pessoa recebe um convite por e-mail para entrar, aceitar os termos e enviar o
+            próprio comprovante. Quem ainda não tem conta cria pelo link do convite.
+          </p>
+          {integrantes.map((l, n) => (
+            <div
+              key={n}
+              className={`grid gap-2 rounded-xl border border-[#EDE6D6] bg-[#FAF8F5] p-3 ${
+                mista ? "sm:grid-cols-[1fr_1.2fr_9rem_auto]" : "sm:grid-cols-[1fr_1.2fr_auto]"
+              }`}
+            >
+              <input
+                required
+                aria-label={`Nome do integrante ${n + 1}`}
+                placeholder="Nome"
+                maxLength={255}
+                value={l.nome}
+                onChange={(e) => alterarLinha(n, "nome", e.target.value)}
+                className={campoCls}
+              />
+              <input
+                required
+                type="email"
+                aria-label={`E-mail do integrante ${n + 1}`}
+                placeholder="E-mail"
+                value={l.email}
+                onChange={(e) => alterarLinha(n, "email", e.target.value)}
+                className={campoCls}
+              />
+              {mista && (
+                <select
+                  required
+                  aria-label={`Tipo do integrante ${n + 1}`}
+                  value={l.tipo}
+                  onChange={(e) => alterarLinha(n, "tipo", e.target.value)}
+                  className={campoCls}
+                >
+                  <option value="">Tipo...</option>
+                  {TIPOS.map((t) => (
+                    <option key={t} value={t}>
+                      {ROTULO_TIPO_INTEGRANTE[t]}
+                    </option>
+                  ))}
+                </select>
+              )}
+              <button
+                type="button"
+                aria-label={`Retirar integrante ${n + 1}`}
+                onClick={() => {
+                  setIntegrantes((ls) => (ls.length > 1 ? ls.filter((_, i) => i !== n) : [LINHA_VAZIA]));
+                  setChave(novaChave());
+                }}
+                className="rounded-lg border border-[#D8CFC0] bg-white px-3 text-sm text-[#5C574F] hover:border-[#F5C2C7] hover:text-[#9B2226]"
+              >
+                −
+              </button>
+            </div>
+          ))}
+          {total < maximo && (
+            <button
+              type="button"
+              onClick={() => setIntegrantes((ls) => [...ls, LINHA_VAZIA])}
+              className="rounded-lg border border-dashed border-[#95D5B2] px-3 py-2 text-xs font-semibold text-[#2D6A4F] hover:bg-[#E6F4EA]"
+            >
+              + Adicionar integrante
+            </button>
+          )}
+        </fieldset>
+
         <button
           type="submit"
           disabled={
@@ -148,7 +325,7 @@ export function FormCriarEquipe({
           }
           className="px-5 py-2.5 rounded-lg bg-[#1B4332] hover:bg-[#2D6A4F] text-white text-xs font-bold transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {criando ? "Criando equipe..." : "Criar Equipe"}
+          {criando ? "Criando equipe..." : "Criar equipe e enviar convites"}
         </button>
       </form>
     </section>
