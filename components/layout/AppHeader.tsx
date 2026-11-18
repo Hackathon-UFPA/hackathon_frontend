@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { auth, getUser, type Usuario } from "@/lib/api";
 import Logo from "@/components/marca/Logo";
 import NotificacoesSino from "@/components/notificacoes/NotificacoesSino";
+import AlternarTema from "@/components/layout/AlternarTema";
 
 const navLinks = [
   { href: "/", label: "Início" },
@@ -78,7 +79,7 @@ export default function AppHeader() {
         {/* Navegação principal — desktop */}
         <nav
           aria-label="Navegação principal"
-          className="hidden md:flex items-center gap-8 text-sm font-medium"
+          className="hidden md:flex items-center gap-8 text-[15px] font-semibold"
         >
           {navLinks.map((link) => {
             const isActive =
@@ -91,10 +92,10 @@ export default function AppHeader() {
                 key={link.href}
                 href={link.href}
                 aria-current={isActive ? "page" : undefined}
-                className={`transition-colors ${
+                className={`relative py-1 transition-colors after:absolute after:inset-x-0 after:-bottom-0.5 after:h-0.5 after:rounded-full after:transition-colors ${
                   isActive
-                    ? "text-emerald-700"
-                    : "text-gray-700 hover:text-gray-900"
+                    ? "text-emerald-700 after:bg-emerald-600"
+                    : "text-gray-900 hover:text-emerald-700 after:bg-transparent"
                 }`}
               >
                 {link.label}
@@ -105,6 +106,8 @@ export default function AppHeader() {
 
         {/* Ações e botão do menu mobile */}
         <div className="flex items-center gap-3">
+          <AlternarTema />
+
           {/* Ações — desktop */}
           <div className="hidden md:flex items-center gap-3">
             {carregando ? (
@@ -142,7 +145,7 @@ export default function AppHeader() {
               <>
                 <Link
                   href="/login"
-                  className="text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors"
+                  className="text-sm font-semibold text-gray-900 hover:text-emerald-700 transition-colors"
                 >
                   Entrar
                 </Link>
@@ -193,10 +196,10 @@ export default function AppHeader() {
                   href={link.href}
                   aria-current={isActive ? "page" : undefined}
                   onClick={() => setMenuAberto(false)}
-                  className={`rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
+                  className={`rounded-lg px-4 py-3 text-sm font-semibold transition-colors ${
                     isActive
                       ? "bg-emerald-500/10 text-emerald-700"
-                      : "text-gray-700 hover:bg-gray-50 hover:text-white"
+                      : "text-gray-900 hover:bg-gray-50 hover:text-emerald-700"
                   }`}
                 >
                   {link.label}

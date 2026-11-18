@@ -32,13 +32,13 @@ export default function RootLayout({
 
         <Rodape />
 
-        {/* Reaplica as preferências de acessibilidade antes da hidratação, para a página não
-            piscar no tema padrão. Script inline: precisa de id (next/script). */}
+        {/* Reaplica o tema (claro/escuro) e as preferências de acessibilidade antes da hidratação,
+            para a página não piscar no tema padrão. Script inline: precisa de id (next/script). */}
         <Script
           id="preferencias-acessibilidade"
           strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
-            __html: `try{var p=JSON.parse(localStorage.getItem("hk_acessibilidade")||"{}"),c=document.documentElement.classList;p.contraste&&c.add("high-contrast");p.semAnimacao&&c.add("sem-animacao");p.destacarLinks&&c.add("destacar-links");p.espacamento&&c.add("espacamento-texto");p.texto===1&&c.add("texto-grande");p.texto===2&&c.add("texto-muito-grande")}catch(e){}`,
+            __html: `try{var t=localStorage.getItem("hk_tema");(t?t==="escuro":matchMedia("(prefers-color-scheme: dark)").matches)&&document.documentElement.classList.add("dark")}catch(e){}try{var p=JSON.parse(localStorage.getItem("hk_acessibilidade")||"{}"),c=document.documentElement.classList;p.contraste&&c.add("high-contrast");p.semAnimacao&&c.add("sem-animacao");p.destacarLinks&&c.add("destacar-links");p.espacamento&&c.add("espacamento-texto");p.texto===1&&c.add("texto-grande");p.texto===2&&c.add("texto-muito-grande")}catch(e){}`,
           }}
         />
 
