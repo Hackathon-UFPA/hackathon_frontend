@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Logo from "@/components/marca/Logo";
 import { FaixaMarajoara } from "@/components/marajoara/Grafismos";
-import VasoMarajoara from "@/components/marajoara/VasoMarajoara";
 import { MARCA } from "@/lib/marca";
 
 // Só links para páginas que existem. Termos de uso, privacidade e contato entram aqui quando
@@ -37,7 +36,6 @@ export default function Rodape() {
             </Link>
             <p className="mt-4 text-sm leading-relaxed text-gray-600">{MARCA.descricao}</p>
           </div>
-          <VasoMarajoara className="hidden h-36 w-auto shrink-0 sm:block" />
         </div>
 
         {COLUNAS.map((coluna) => (

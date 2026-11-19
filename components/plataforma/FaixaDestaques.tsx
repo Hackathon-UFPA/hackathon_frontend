@@ -7,7 +7,6 @@ import { hackathons } from "@/lib/api";
 import ContadorAnimado from "./ContadorAnimado";
 import Revelar from "./Revelar";
 import { FaixaMarajoara } from "@/components/marajoara/Grafismos";
-import VasoMarajoara from "@/components/marajoara/VasoMarajoara";
 import {
   IlustracaoAvaliacao,
   IlustracaoAviso,
@@ -58,7 +57,6 @@ export default function FaixaDestaques() {
             <p className="text-6xl font-extrabold tracking-tight text-[#0B3B2E] sm:text-7xl">
               {numeros ? <ContadorAnimado valor={numeros.hackathons} /> : "—"}
             </p>
-            <VasoMarajoara className="h-32 w-auto shrink-0 drop-shadow-[0_10px_18px_rgba(6,78,59,0.25)]" />
           </div>
           <p className="mt-2 text-2xl font-bold leading-snug text-[#0B3B2E]">
             {numeros?.hackathons === 1 ? "hackathon na plataforma" : "hackathons na plataforma"}

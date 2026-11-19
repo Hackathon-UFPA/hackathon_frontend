@@ -7,7 +7,6 @@ import { LogoMarca } from "@/components/marca/Logo";
 import { MARCA } from "@/lib/marca";
 import { CARTAO_NO_PAINEL, PAINEL_SECAO } from "@/components/plataforma/painel";
 import FaixaDestaques from "@/components/plataforma/FaixaDestaques";
-import CenaRio from "@/components/marajoara/CenaRio";
 import { DivisorMarajoara, FaixaMarajoara } from "@/components/marajoara/Grafismos";
 
 import {
@@ -54,8 +53,6 @@ export default function LandingPage() {
       <section className="relative px-4 py-20 sm:px-6 md:py-32">
         {/* Palavras subindo só nesta parte de cima da home */}
         <TrechosSubindo className="trechos-secao pointer-events-none absolute inset-0 overflow-hidden" escalaDuracao={0.75} />
-        {/* Canoa no canto esquerdo, inclinada; só em telas largas, para não cobrir o texto */}
-        <CenaRio soCanoa className="pointer-events-none absolute bottom-4 left-0 hidden w-[280px] origin-bottom-left -rotate-[8deg] lg:block xl:w-[340px] 2xl:w-[440px]" />
         <div className="relative mx-auto max-w-4xl text-center">
           <LogoMarca className="entrar mx-auto mb-8 h-16 w-16 dark:drop-shadow-[0_0_30px_rgba(16,185,129,0.55)]" />
           <h1 style={{ animationDelay: "160ms" }} className="entrar text-4xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
