@@ -43,7 +43,7 @@ function ListaHackathons() {
 
   return (
     <main className="relative min-h-screen px-4 py-10 text-gray-700 sm:px-6">
-      <FundoAnimado intensidade="suave" />
+      <FundoAnimado intensidade="suave" trechos={false} />
       <div className="mx-auto max-w-7xl">
         <h1 className="text-3xl font-extrabold text-gray-900">
           {nomeDaOrganizacao ? `Hackathons de ${nomeDaOrganizacao}` : "Hackathons"}
