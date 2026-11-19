@@ -242,7 +242,7 @@ export default function HackathonDetalhePage() {
   if (naoEncontrado) {
     return (
       <main className="relative min-h-[70vh] px-4 py-20 text-center">
-        <FundoAnimado intensidade="suave" />
+        <FundoAnimado intensidade="suave" trechos={false} />
         <div className={`${PAINEL_SECAO} mx-auto max-w-md`}>
           <p className="text-lg font-bold text-gray-900">Hackathon não encontrado</p>
           <p className="mt-2 text-sm text-gray-600">O link pode estar errado ou o hackathon ainda não foi publicado.</p>
@@ -257,7 +257,7 @@ export default function HackathonDetalhePage() {
   if (!h || !agora) {
     return (
       <main className="relative mx-auto min-h-[70vh] max-w-7xl px-4 py-10 sm:px-6">
-        <FundoAnimado intensidade="suave" />
+        <FundoAnimado intensidade="suave" trechos={false} />
         {erro ? (
           <ApiErrorAlert erro={erro} onClose={() => setErro(null)} />
         ) : (
@@ -313,7 +313,7 @@ export default function HackathonDetalhePage() {
 
   return (
     <main className="relative pb-6">
-      <FundoAnimado intensidade="suave" />
+      <FundoAnimado intensidade="suave" trechos={false} />
 
       {/* Topo */}
       <div className="mx-auto max-w-7xl px-4 pt-8 sm:px-6">
