@@ -64,7 +64,17 @@ function ConteudoPainelEquipe() {
   const [hackathonCriacaoId, setHackathonCriacaoId] = useState<string>("");
   const [painel, setPainel] = useState<PainelEquipeNormalizado | null>(null);
 
-  const [abaAtiva, setAbaAtiva] = useState<AbaPainel>("visao-geral");
+const abaUrl = searchParams.get("aba") as AbaPainel | null;
+
+const abaInicial: AbaPainel =
+  abaUrl === "inscricao" ||
+  abaUrl === "convites-conta" ||
+  abaUrl === "proposta" ||
+  abaUrl === "resultado"
+    ? abaUrl
+    : "visao-geral";
+
+const [abaAtiva, setAbaAtiva] = useState<AbaPainel>(abaInicial);
   const [carregandoInicial, setCarregandoInicial] = useState(true);
   const [carregandoPainel, setCarregandoPainel] = useState(false);
   const [erroGeral, setErroGeral] = useState<string | null>(null);
@@ -175,6 +185,22 @@ function ConteudoPainelEquipe() {
       setCarregandoPainel(false);
     }
   }, []);
+
+useEffect(() => {
+  const abaUrl = searchParams.get("aba") as AbaPainel | null;
+
+  const abaValida: AbaPainel[] = [
+    "visao-geral",
+    "inscricao",
+    "convites-conta",
+    "proposta",
+    "resultado",
+  ];
+
+  if (abaUrl && abaValida.includes(abaUrl) && abaUrl !== abaAtiva) {
+    setAbaAtiva(abaUrl);
+  }
+}, [searchParams, abaAtiva]);
 
   useEffect(() => {
     carregarContextoBase();
@@ -336,83 +362,7 @@ function ConteudoPainelEquipe() {
           )}
         </section>
 
-        <nav
-          aria-label="Navegação do painel do participante"
-          className="flex flex-wrap gap-2 border-b border-gray-200 pb-3"
-        >
-          <button
-            type="button"
-            onClick={() => setAbaAtiva("visao-geral")}
-            className={`cursor-pointer rounded-xl px-4 py-2 text-xs font-bold transition-colors ${
-              abaAtiva === "visao-geral"
-                ? "bg-emerald-600 text-white shadow-md shadow-emerald-900/10"
-                : "border border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-white"
-            }`}
-          >
-            Visão Geral
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setAbaAtiva("inscricao")}
-            className={`cursor-pointer rounded-xl px-4 py-2 text-xs font-bold transition-colors ${
-              abaAtiva === "inscricao"
-                ? "bg-emerald-600 text-white shadow-md shadow-emerald-900/10"
-                : "border border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-white"
-            }`}
-          >
-            Inscrição & Integrantes
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setAbaAtiva("convites-conta")}
-            className={`flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-colors ${
-              abaAtiva === "convites-conta"
-                ? "bg-emerald-600 text-white shadow-md shadow-emerald-900/10"
-                : "border border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-white"
-            }`}
-          >
-            <span>Conta & Convites</span>
-
-            {convitesPendentesCount > 0 && (
-              <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-extrabold text-black">
-                {convitesPendentesCount}
-              </span>
-            )}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setAbaAtiva("proposta")}
-            className={`cursor-pointer rounded-xl px-4 py-2 text-xs font-bold transition-colors ${
-              abaAtiva === "proposta"
-                ? "bg-emerald-600 text-white shadow-md shadow-emerald-900/10"
-                : "border border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-white"
-            }`}
-          >
-            Proposta (Módulo D)
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setAbaAtiva("resultado")}
-            className={`cursor-pointer rounded-xl px-4 py-2 text-xs font-bold transition-colors ${
-              abaAtiva === "resultado"
-                ? "bg-emerald-600 text-white shadow-md shadow-emerald-900/10"
-                : "border border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-white"
-            }`}
-          >
-            Resultado Científico
-          </button>
-
-          <span
-            title="Disponível após homologação científica e abertura da fase de mentoria"
-            className="cursor-not-allowed rounded-xl border border-gray-100 bg-white/[0.02] px-3.5 py-2 text-xs font-medium text-gray-500"
-          >
-            Entregas & Chat (Fase 2)
-          </span>
-        </nav>
+      
 
         {abaAtiva === "visao-geral" && (
           <div className="space-y-6">

@@ -1,11 +1,14 @@
 import {
+  CalendarDays,
   ClipboardCheck,
   FileText,
+  MessageSquare,
   Rocket,
   Scale,
   Settings2,
-  Users,
+  UserCircle,
   UserCheck,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 import type { PapelUsuario } from "@/lib/api";
@@ -17,6 +20,8 @@ export type ItemNavegacao = {
   icone: LucideIcon;
   papeis: PapelUsuario[];
   contador?: "comprovantes";
+  aba?: string;
+  desabilitado?: boolean;
 };
 
 export type GrupoNavegacao = {
@@ -29,32 +34,88 @@ export const NAVEGACAO: GrupoNavegacao[] = [
     titulo: "Participante",
     itens: [
       {
-        href: "/equipe",
-        titulo: "Minha equipe",
-        descricao: "Equipe, integrantes e convites",
+        href: "/equipe?aba=visao-geral",
+        titulo: "Visão Geral",
+        descricao: "Situação da conta, equipe e próximos passos",
+        icone: Rocket,
+        papeis: ["PARTICIPANTE", "DEV"],
+        aba: "visao-geral",
+      },
+      {
+        href: "/equipe?aba=inscricao",
+        titulo: "Inscrição & Integrantes",
+        descricao: "Crie a equipe, convide e gerencie integrantes",
         icone: Users,
-        papeis: ["PARTICIPANTE", "MENTOR", "ORGANIZADOR", "COMITE_CIENTIFICO", "DEV"],
+        papeis: ["PARTICIPANTE", "DEV"],
+        aba: "inscricao",
       },
       {
-        href: "/inscricao",
-        titulo: "Inscrição",
-        descricao: "Equipe, integrantes e conta",
-        icone: ClipboardCheck,
-        papeis: ["PARTICIPANTE", "MENTOR", "ORGANIZADOR", "COMITE_CIENTIFICO", "DEV"],
-      },
-      {
-        href: "/proposta",
-        titulo: "Proposta",
-        descricao: "Crie e envie a proposta da equipe",
+        href: "/equipe?aba=proposta",
+        titulo: "Proposta Científica",
+        descricao: "Crie, envie e acompanhe a proposta",
         icone: FileText,
-        papeis: ["PARTICIPANTE", "MENTOR", "ORGANIZADOR", "COMITE_CIENTIFICO", "DEV"],
+        papeis: ["PARTICIPANTE", "DEV"],
+        aba: "proposta",
       },
+      {
+        href: "/equipe?aba=resultado",
+        titulo: "Resultado Científico",
+        descricao: "Acompanhe a avaliação da proposta",
+        icone: Scale,
+        papeis: ["PARTICIPANTE", "DEV"],
+        aba: "resultado",
+      },
+    ],
+  },
+  {
+    titulo: "Minha conta",
+    itens: [
+      {
+  href: "/perfil",
+  titulo: "Meu perfil",
+  descricao: "Dados da sua conta",
+  icone: UserCircle,
+  papeis: ["PARTICIPANTE", "DEV"],
+},
+      {
+  href: "/equipe?aba=convites-conta",
+  titulo: "Conta & Convites",
+  descricao: "Comprovante de vínculo e convites recebidos",
+  icone: ClipboardCheck,
+  papeis: ["PARTICIPANTE", "DEV"],
+  aba: "convites-conta",
+},
+    ],
+  },
+  {
+    titulo: "Plataforma",
+    itens: [
       {
         href: "/cronograma",
         titulo: "Cronograma",
         descricao: "Datas e etapas do hackathon",
-        icone: Rocket,
-        papeis: ["PARTICIPANTE", "MENTOR", "ORGANIZADOR", "COMITE_CIENTIFICO", "DEV"],
+        icone: CalendarDays,
+        papeis: [
+          "PARTICIPANTE",
+          "MENTOR",
+          "ORGANIZADOR",
+          "COMITE_CIENTIFICO",
+          "DEV",
+        ],
+      },
+    ],
+  },
+  {
+    titulo: "Em breve",
+    itens: [
+      {
+        href: "/equipe?aba=visao-geral",
+        titulo: "Entregas & Chat",
+        descricao: "Disponível em uma próxima fase",
+        icone: MessageSquare,
+        papeis: ["PARTICIPANTE", "DEV"],
+        aba: "visao-geral",
+        desabilitado: true,
       },
     ],
   },

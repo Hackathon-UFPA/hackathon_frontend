@@ -8,6 +8,8 @@ import { Menu } from "lucide-react";
 import AppSidebar from "./AppSidebar";
 import { filtrarNavegacao, type GrupoNavegacao } from "@/lib/navegacao";
 import type { PapelUsuario } from "@/lib/api";
+import NotificacoesSino from "@/components/notificacoes/NotificacoesSino";
+import AlternarTema from "@/components/layout/AlternarTema";
 
 type AppShellProps = {
   children: ReactNode;
@@ -108,7 +110,12 @@ export default function AppShell({
                 </div>
               </div>
 
-              {acoes && <div className="flex flex-wrap gap-2">{acoes}</div>}
+              <div className="flex flex-wrap items-center gap-2">
+  <NotificacoesSino />
+  <AlternarTema />
+
+  {acoes && <>{acoes}</>}
+</div>
             </div>
           </header>
 

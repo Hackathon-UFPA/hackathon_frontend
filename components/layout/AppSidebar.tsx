@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { LogOut, X } from "lucide-react";
 import {
   filtrarNavegacao,
@@ -47,6 +47,20 @@ function Item({
   onClique?: () => void;
 }) {
   const Icone = item.icone;
+
+  if (item.desabilitado) {
+    return (
+      <span
+        title={item.descricao}
+        className="flex cursor-not-allowed items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-gray-600"
+      >
+        <Icone className="h-4 w-4 shrink-0 text-gray-600" aria-hidden="true" />
+        <span className="min-w-0 flex-1 truncate font-medium">
+          {item.titulo}
+        </span>
+      </span>
+    );
+  }
 
   return (
     <Link
@@ -94,7 +108,18 @@ export default function AppSidebar({
   onFechar,
 }: AppSidebarProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const grupos = filtrarNavegacao(navegacao, papel);
+
+  const estaAtivo = (item: ItemNavegacao) => {
+    const base = item.href.split("?")[0];
+    const aba = item.aba;
+
+    if (pathname !== base) return false;
+    if (!aba) return true;
+
+    return searchParams.get("aba") === aba;
+  };
 
   const conteudo = (
     <div className="flex h-full flex-col bg-[#0A1110]">
@@ -136,45 +161,44 @@ export default function AppSidebar({
             </p>
 
             <div className="space-y-1">
-              {grupo.itens.map((item) => {
-                const ativo =
-                  pathname === item.href ||
-                  (item.href !== "/" && pathname.startsWith(`${item.href}/`));
-
-                return (
-                  <Item
-                    key={item.href}
-                    item={item}
-                    ativo={ativo}
-                    pendentes={pendentes}
-                    onClique={variante === "mobile" ? onFechar : undefined}
-                  />
-                );
-              })}
+              {grupo.itens.map((item) => (
+                <Item
+                  key={item.titulo}
+                  item={item}
+                  ativo={estaAtivo(item)}
+                  pendentes={pendentes}
+                  onClique={variante === "mobile" ? onFechar : undefined}
+                />
+              ))}
             </div>
           </div>
         ))}
       </nav>
 
       <div className="border-t border-emerald-900/40 p-4">
-        <div className="mb-3 flex items-center gap-3 rounded-xl bg-[#131D1C] p-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-xs font-bold text-emerald-300">
-            {iniciais(nomeUsuario || emailUsuario)}
-          </span>
+        <Link
+  href="/perfil"
+  title="Meu perfil"
+  aria-label="Meu perfil"
+  className="mb-3 flex items-center gap-3 rounded-xl bg-[#131D1C] p-3 transition-colors hover:bg-[#182423]"
+>
+  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-xs font-bold text-emerald-300">
+    {iniciais(nomeUsuario || emailUsuario)}
+  </span>
 
-          <span className="min-w-0">
-            <span className="block truncate text-xs font-semibold text-white">
-              {nomeUsuario || emailUsuario}
-            </span>
-            <span className="block truncate text-[10px] text-gray-500">
-              {papel === "ORGANIZADOR"
-                ? "Organizador"
-                : papel === "COMITE_CIENTIFICO"
-                  ? "Comitê Científico"
-                  : papel}
-            </span>
-          </span>
-        </div>
+  <span className="min-w-0 flex-1">
+    <span className="block truncate text-xs font-semibold text-white">
+      {nomeUsuario || emailUsuario}
+    </span>
+    <span className="block truncate text-[10px] text-gray-500">
+      {papel === "ORGANIZADOR"
+        ? "Organizador"
+        : papel === "COMITE_CIENTIFICO"
+          ? "Comitê Científico"
+          : papel}
+    </span>
+  </span>
+</Link>
 
         <button
           type="button"
