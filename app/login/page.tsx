@@ -184,7 +184,7 @@ function AuthPageContent() {
 
   // Cadastro de participante (RF01): o comprovante de vínculo vai junto e a conta nasce
   // pendente até a organização aprovar o comprovante. A pessoa já consegue entrar.
-  const handleCadastro = (e: React.FormEvent) => {
+  const handleCadastro = (e: React.FormEvent, criarEquipeAposCadastro: boolean) => {
     e.preventDefault();
     if (!edicaoId) {
       setErro("Escolha o hackathon de que você quer participar.");
@@ -210,7 +210,12 @@ function AuthPageContent() {
         comprovante_url: comprovanteUrl,
       });
       await auth.login(email, cad.senha);
-      router.push(next ?? `/equipe?hackathon_id=${edicaoId}`);
+
+      const destinoEquipe = `/equipe?hackathon_id=${edicaoId}${
+        criarEquipeAposCadastro ? "&intencao=criar-equipe" : ""
+      }`;
+
+      router.push(next ?? destinoEquipe);
     });
   };
 
@@ -263,7 +268,7 @@ function AuthPageContent() {
             Entrar
           </button>
           <button type="button" role="tab" aria-selected={aba === "cadastro"} onClick={() => trocarAba("cadastro")} className={abaCls("cadastro")}>
-            Sou participante
+            Criar conta
           </button>
           <button type="button" role="tab" aria-selected={aba === "organizacao"} onClick={() => trocarAba("organizacao")} className={abaCls("organizacao")}>
             Quero organizar
@@ -298,12 +303,16 @@ function AuthPageContent() {
         )}
 
         {aba === "cadastro" && (
-          <form onSubmit={handleCadastro} className="space-y-4">
+          <form
+            onSubmit={(e) => handleCadastro(e, false)}
+            className="space-y-4"
+          >
             <p className="text-xs text-gray-600 leading-relaxed">
               Crie sua conta para participar de hackathons de empresas e universidades, como
               estudante ou profissional. Envie o comprovante de vínculo: sua conta fica pendente
               até a organização aprovar, mas você já consegue entrar.
             </p>
+
             <Campo label="Hackathon *" erro={fields.hackathon_id}>
               <select
                 required
@@ -412,9 +421,36 @@ function AuthPageContent() {
                 onChange={(e) => setComprovante(e.target.files?.[0] ?? null)}
               />
             </Campo>
-            <button type="submit" disabled={loading} className={btn}>
-              {loading ? "Criando conta..." : "Criar conta →"}
-            </button>
+
+            <div className="pt-2">
+              <p className="text-xs font-semibold text-gray-700 mb-2">
+                Ao concluir, você deseja:
+              </p>
+
+              <div className="grid gap-3">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-lg text-sm cursor-pointer"
+                >
+                  {loading ? "Criando conta..." : "Apenas cadastrar no hackathon →"}
+                </button>
+
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={(e) => handleCadastro(e as unknown as React.FormEvent, true)}
+                  className="w-full py-3.5 border border-emerald-600 text-emerald-700 hover:bg-emerald-50 disabled:opacity-50 font-bold rounded-lg text-sm cursor-pointer"
+                >
+                  Cadastrar e criar equipe →
+                </button>
+              </div>
+
+              <p className="text-[11px] text-gray-500 mt-2">
+                Em “Cadastrar e criar equipe”, após a aprovação do comprovante você poderá criar a
+                equipe e convidar integrantes por nome e e-mail.
+              </p>
+            </div>
           </form>
         )}
 
