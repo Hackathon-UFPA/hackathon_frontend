@@ -45,7 +45,7 @@ function ConteudoAvaliacoes() {
   const [hackathonId, setHackathonId] = useState("");
   const [designacoes, setDesignacoes] = useState<PropostaDesignadaAdmin[]>([]);
   /** null = mostra o valor salvo na edição. */
-  const [qtdEditada, setQtdEditada] = useState<string | null>(null);
+
   const [resultado, setResultado] = useState<DistribuicaoResp | null>(null);
 
   // Redistribuição: proposta em edição e ids escolhidos (por posição)
@@ -85,7 +85,6 @@ function ConteudoAvaliacoes() {
   const qtd = edicao?.avaliadores_por_proposta ?? null;
   const bloqueado = !!edicao?.status && STATUS_BLOQUEADOS.includes(edicao.status);
 
-  const qtdForm = qtdEditada ?? (qtd ? String(qtd) : "");
 
   // Quem troca de edição liga o "carregando"; o efeito só altera estado nos callbacks.
   useEffect(() => {
@@ -129,35 +128,12 @@ function ConteudoAvaliacoes() {
   const trocarEdicao = (id: string) => {
     if (id !== hackathonId) setCarregando(true);
     setHackathonId(id);
-    setQtdEditada(null);
     setEditandoId(null);
     setResultado(null);
     limpar();
   };
 
-  const salvarConfiguracao = async () => {
-    const n = Number(qtdForm);
-    if (n !== 2 && n !== 3) {
-      setErro("Escolha 2 ou 3 avaliadores por proposta.");
-      return;
-    }
-    setOcupado("config");
-    limpar();
-    try {
-      const r = await distribuicaoApi.configurar(hackathonId, n);
-      setEdicoes((lst) =>
-        lst.map((h) => (h.id === hackathonId ? { ...h, avaliadores_por_proposta: r.avaliadores_por_proposta } : h))
-      );
-      setQtdEditada(null);
-      setMensagem(
-        `Configuração salva: ${r.avaliadores_por_proposta} avaliadores por proposta. Vale para as próximas distribuições; designações já feitas não mudam.`
-      );
-    } catch (e) {
-      setErro(e);
-    } finally {
-      setOcupado(null);
-    }
-  };
+
 
   const distribuir = async () => {
     if (
@@ -275,61 +251,47 @@ function ConteudoAvaliacoes() {
             )}
 
             {/* 1 e 2: configuração e distribuição */}
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-[#F6F9F8] border border-gray-200 rounded-xl p-4 space-y-3">
-                <h2 className="text-sm font-bold text-gray-900">1. Avaliadores por proposta</h2>
-                <p className="text-[11px] text-gray-500">
-                  Atual: <strong className="text-gray-700">{qtd ?? "não configurado"}</strong>. Mudar o valor não
-                  altera designações já feitas.
-                </p>
-                <div className="flex gap-2">
-                  <select
-                    aria-label="Avaliadores por proposta"
-                    className={inp}
-                    value={qtdForm}
-                    onChange={(e) => setQtdEditada(e.target.value)}
-                  >
-                    <option value="" disabled>
-                      Escolha...
-                    </option>
-                    <option value="2">2 avaliadores</option>
-                    <option value="3">3 avaliadores</option>
-                  </select>
-                  <button
-                    type="button"
-                    onClick={salvarConfiguracao}
-                    disabled={!!ocupado || !qtdForm || Number(qtdForm) === qtd}
-                    className="px-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg text-xs cursor-pointer"
-                  >
-                    {ocupado === "config" ? "Salvando..." : "Salvar"}
-                  </button>
-                </div>
-              </div>
+            <section className="bg-[#F6F9F8] border border-gray-200 rounded-xl p-4 space-y-3">
+              <h2 className="text-sm font-bold text-gray-900">Distribuição automática</h2>
 
-              <div className="bg-[#F6F9F8] border border-gray-200 rounded-xl p-4 space-y-3">
-                <h2 className="text-sm font-bold text-gray-900">2. Distribuição automática</h2>
-                <p className="text-[11px] text-gray-500">
-                  Cada proposta enviada é completada até {qtd ?? "N"} avaliadores, priorizando quem tem menos
-                  propostas. Se faltar avaliador elegível, nada é gravado.
-                </p>
-                <button
-                  type="button"
-                  onClick={distribuir}
-                  disabled={!!ocupado || !qtd || bloqueado}
-                  title={!qtd ? "Configure a quantidade de avaliadores antes." : undefined}
-                  className="w-full inline-flex justify-center items-center gap-2 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg text-xs cursor-pointer"
+              <p className="text-[11px] text-gray-500">
+                Configuração atual:{" "}
+                <strong className="text-gray-700">
+                  {qtd ? `${qtd} avaliador(es) por proposta` : "não configurada"}
+                </strong>
+                . A configuração pode ser alterada em{" "}
+                <Link
+                  href={`/admin/avaliacoes/configuracao?hackathon_id=${hackathonId}`}
+                  className="text-emerald-700 font-semibold hover:underline"
                 >
-                  <Shuffle className="h-4 w-4" />
-                  {ocupado === "distribuir" ? "Distribuindo..." : "Distribuir propostas"}
-                </button>
-                {resultado && (
-                  <p className="text-[11px] text-emerald-700">
-                    {resultado.propostas_distribuidas} proposta(s) receberam avaliadores (
-                    {resultado.designacoes_criadas} designação(ões) nova(s));{" "}
-                    {resultado.propostas_ja_completas} já estavam completas.
-                  </p>
-                )}
-              </div>
+                  Configuração de Avaliação
+                </Link>
+                .
+              </p>
+
+              <p className="text-[11px] text-gray-500">
+                Cada proposta enviada é completada até {qtd ?? "N"} avaliadores, priorizando
+                quem tem menos propostas. Se faltar avaliador elegível, nada é gravado.
+              </p>
+
+              <button
+                type="button"
+                onClick={distribuir}
+                disabled={!!ocupado || !qtd || bloqueado}
+                title={!qtd ? "Configure a quantidade de avaliadores antes." : undefined}
+                className="w-full inline-flex justify-center items-center gap-2 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg text-xs cursor-pointer"
+              >
+                <Shuffle className="h-4 w-4" />
+                {ocupado === "distribuir" ? "Distribuindo..." : "Distribuir propostas"}
+              </button>
+
+              {resultado && (
+                <p className="text-[11px] text-emerald-700">
+                  {resultado.propostas_distribuidas} proposta(s) receberam avaliadores (
+                  {resultado.designacoes_criadas} designação(ões) nova(s));{" "}
+                  {resultado.propostas_ja_completas} já estavam completas.
+                </p>
+              )}
             </section>
 
             {/* 3: designações */}
@@ -355,9 +317,8 @@ function ConteudoAvaliacoes() {
                   return (
                     <div
                       key={p.submissao_id}
-                      className={`bg-[#F6F9F8] border rounded-xl p-4 space-y-3 ${
-                        incompleta ? "border-amber-500/30" : "border-emerald-100"
-                      }`}
+                      className={`bg-[#F6F9F8] border rounded-xl p-4 space-y-3 ${incompleta ? "border-amber-500/30" : "border-emerald-100"
+                        }`}
                     >
                       <div className="flex flex-wrap items-start justify-between gap-2">
                         <div className="min-w-0">
@@ -367,13 +328,12 @@ function ConteudoAvaliacoes() {
                           </p>
                         </div>
                         <span
-                          className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full border ${
-                            p.avaliadores.length === 0
+                          className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full border ${p.avaliadores.length === 0
                               ? "bg-gray-50 border-gray-300 text-gray-600"
                               : incompleta
                                 ? "bg-amber-500/10 border-amber-500/30 text-amber-700"
                                 : "bg-emerald-500/10 border-emerald-500/30 text-emerald-700"
-                          }`}
+                            }`}
                         >
                           {p.avaliadores.length}
                           {qtd ? `/${qtd}` : ""} avaliador(es)

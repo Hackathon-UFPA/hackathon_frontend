@@ -1,5 +1,6 @@
 "use client";
 
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
@@ -20,6 +21,7 @@ import {
   Plus,
   Rocket,
   Scale,
+  Settings2,
   Sparkles,
   Trophy,
   UserCheck,
@@ -41,6 +43,7 @@ import {
 import { COR_STATUS, ROTULO_STATUS, periodo } from "@/components/plataforma/hackathon-util";
 import { useSession } from "@/lib/useSession";
 
+
 type Ferramenta = {
   href: string;
   titulo: string;
@@ -49,6 +52,7 @@ type Ferramenta = {
   papeis: PapelUsuario[];
   contador?: "comprovantes";
 };
+
 
 // Agrupadas pela etapa do hackathon em que são usadas. Os papéis espelham a API: esconder é só
 // conforto, a API responde 403 de todo modo.
@@ -72,6 +76,7 @@ const GRUPOS: { titulo: string; ferramentas: Ferramenta[] }[] = [
   {
     titulo: "Avaliação e resultado",
     ferramentas: [
+      { href: "/admin/avaliacoes/configuracao", titulo: "Configuração de Avaliação", descricao: "Defina quantos avaliadores lerão cada proposta", icone: Settings2, papeis: ["ORGANIZADOR"] },
       { href: "/admin/avaliacoes", titulo: "Distribuição", descricao: "Propostas para o Comitê Científico", icone: Users, papeis: ["ORGANIZADOR"] },
       { href: "/avaliador", titulo: "Minhas avaliações", descricao: "Propostas designadas para você", icone: Scale, papeis: ["COMITE_CIENTIFICO"] },
       { href: "/admin/resultado", titulo: "Resultado", descricao: "Homologue e divulgue as aprovadas", icone: Trophy, papeis: ["ORGANIZADOR"] },
@@ -95,13 +100,16 @@ const GRUPOS: { titulo: string; ferramentas: Ferramenta[] }[] = [
   },
 ];
 
+
 type Resumo = {
   hackathon: HackathonResponse;
   equipes: EquipesDoHackathon | null; // null em rascunho (rota pública não mostra)
   termosOk: boolean;
 };
 
+
 const LIMITE_FILA = 200;
+
 
 function Indicador({ rotulo, valor, detalhe, icone: Icone, destaque }: { rotulo: string; valor: string; detalhe?: string; icone: LucideIcon; destaque?: boolean }) {
   return (
@@ -116,6 +124,7 @@ function Indicador({ rotulo, valor, detalhe, icone: Icone, destaque }: { rotulo:
   );
 }
 
+
 function iniciais(nome: string) {
   return (
     nome
@@ -127,13 +136,16 @@ function iniciais(nome: string) {
   );
 }
 
+
 export default function AdminDashboardPage() {
   const { user, pronto } = useSession(["ORGANIZADOR", "COMITE_CIENTIFICO"]);
   const [org, setOrg] = useState<Organizacao | null>(null);
   const [resumos, setResumos] = useState<Resumo[] | null>(null);
   const [pendentes, setPendentes] = useState<number | null>(null);
 
+
   const gestor = user?.papel === "ORGANIZADOR" || user?.papel === "DEV";
+
 
   useEffect(() => {
     if (!pronto || !user) return;
@@ -162,7 +174,9 @@ export default function AdminDashboardPage() {
     }
   }, [pronto, user]);
 
+
   if (!pronto || !user) return null;
+
 
   const lista = resumos ?? [];
   const publicados = lista.filter((r) => r.hackathon.status !== "RASCUNHO" && r.hackathon.status !== "CANCELADO");
@@ -173,18 +187,22 @@ export default function AdminDashboardPage() {
   const aguardando = lista.reduce((soma, r) => soma + (r.equipes?.total_aguardando_homologacao ?? 0), 0);
   const textoPendentes = pendentes === null ? "—" : pendentes >= LIMITE_FILA ? `${LIMITE_FILA}+` : String(pendentes);
 
+
   const atencao: { texto: string; href: string; acao: string }[] = [
     ...(pendentes ? [{ texto: `${textoPendentes} ${pendentes === 1 ? "comprovante aguarda" : "comprovantes aguardam"} sua conferência`, href: "/admin/comprovantes", acao: "Conferir" }] : []),
     ...(gestor ? rascunhos.map((r) => ({ texto: `"${r.hackathon.nome || "Sem nome"}" ainda é rascunho e não aparece no site`, href: `/admin/hackathon?id=${r.hackathon.id}`, acao: "Publicar" })) : []),
     ...(gestor ? semTermos.map((r) => ({ texto: `"${r.hackathon.nome || "Sem nome"}" está sem regulamento ou termo de consentimento`, href: `/admin/termos?hackathon_id=${r.hackathon.id}`, acao: "Publicar termos" })) : []),
   ];
 
+
   const ferramentasVisiveis = GRUPOS.map((g) => ({
     ...g,
     ferramentas: g.ferramentas.filter((f) => user.papel === "DEV" || f.papeis.includes(user.papel)),
   })).filter((g) => g.ferramentas.length > 0);
 
+
   const nomeOrg = org?.nome ?? (user.papel === "DEV" ? "Acesso de desenvolvimento" : "Sua organização");
+
 
   return (
     <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
@@ -221,6 +239,7 @@ export default function AdminDashboardPage() {
         )}
       </header>
 
+
       {/* Indicadores */}
       <section aria-label="Resumo" className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {gestor && (
@@ -251,6 +270,7 @@ export default function AdminDashboardPage() {
         )}
       </section>
 
+
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_22rem]">
         <div className="min-w-0 space-y-6">
           {/* Hackathons */}
@@ -262,6 +282,7 @@ export default function AdminDashboardPage() {
                   Gerenciar
                 </Link>
               </div>
+
 
               {resumos === null ? (
                 <div className="space-y-3">
@@ -307,6 +328,7 @@ export default function AdminDashboardPage() {
                           </div>
                         </div>
 
+
                         <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
                           {status === "RASCUNHO" ? (
                             <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-1 font-medium text-amber-800">
@@ -338,6 +360,7 @@ export default function AdminDashboardPage() {
               )}
             </section>
           )}
+
 
           {/* Ferramentas */}
           <section className="rounded-3xl border border-gray-200 bg-white p-6">
@@ -372,6 +395,7 @@ export default function AdminDashboardPage() {
             </div>
           </section>
         </div>
+
 
         {/* Atenção */}
         <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
