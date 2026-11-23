@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { LogOut, X } from "lucide-react";
 import {
   filtrarNavegacao,
   type GrupoNavegacao,
@@ -19,6 +19,9 @@ type AppSidebarProps = {
   emailUsuario: string;
   pendentes: number | null;
   onSair: () => void;
+  variante?: "desktop" | "mobile";
+  aberto?: boolean;
+  onFechar?: () => void;
 };
 
 function iniciais(nome: string) {
@@ -36,16 +39,19 @@ function Item({
   item,
   ativo,
   pendentes,
+  onClique,
 }: {
   item: ItemNavegacao;
   ativo: boolean;
   pendentes: number | null;
+  onClique?: () => void;
 }) {
   const Icone = item.icone;
 
   return (
     <Link
       href={item.href}
+      onClick={onClique}
       className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
         ativo
           ? "bg-white/5 text-white"
@@ -83,27 +89,43 @@ export default function AppSidebar({
   emailUsuario,
   pendentes,
   onSair,
+  variante = "desktop",
+  aberto = false,
+  onFechar,
 }: AppSidebarProps) {
   const pathname = usePathname();
   const grupos = filtrarNavegacao(navegacao, papel);
 
-  return (
-    <aside className="hidden w-72 shrink-0 flex-col border-r border-emerald-900/40 bg-[#0A1110] lg:flex">
+  const conteudo = (
+    <div className="flex h-full flex-col bg-[#0A1110]">
       <div className="border-b border-emerald-900/40 p-5">
-        <Link href="/" className="flex items-center gap-3">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-sm font-bold text-white">
-            {iniciais(nomeOrganizacao)}
-          </span>
+        <div className="flex items-center justify-between gap-3">
+          <Link href="/" className="flex min-w-0 items-center gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-sm font-bold text-white">
+              {iniciais(nomeOrganizacao)}
+            </span>
 
-          <span className="min-w-0">
-            <span className="block truncate text-sm font-bold text-white">
-              {nomeOrganizacao}
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-bold text-white">
+                {nomeOrganizacao}
+              </span>
+              <span className="block truncate text-xs text-gray-500">
+                {tipoOrganizacao ?? "Plataforma"}
+              </span>
             </span>
-            <span className="block truncate text-xs text-gray-500">
-              {tipoOrganizacao ?? "Plataforma"}
-            </span>
-          </span>
-        </Link>
+          </Link>
+
+          {variante === "mobile" && (
+            <button
+              type="button"
+              onClick={onFechar}
+              aria-label="Fechar menu"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
+            </button>
+          )}
+        </div>
       </div>
 
       <nav className="flex-1 space-y-6 overflow-y-auto p-4">
@@ -125,6 +147,7 @@ export default function AppSidebar({
                     item={item}
                     ativo={ativo}
                     pendentes={pendentes}
+                    onClique={variante === "mobile" ? onFechar : undefined}
                   />
                 );
               })}
@@ -155,13 +178,44 @@ export default function AppSidebar({
 
         <button
           type="button"
-          onClick={onSair}
+          onClick={() => {
+            onSair();
+            onFechar?.();
+          }}
           className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm text-gray-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
         >
           <LogOut className="h-4 w-4" aria-hidden="true" />
           Sair
         </button>
       </div>
+    </div>
+  );
+
+  if (variante === "mobile") {
+    return (
+      <>
+        {aberto && (
+          <div
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+            onClick={onFechar}
+            aria-hidden="true"
+          />
+        )}
+
+        <div
+          className={`fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] transform border-r border-emerald-900/40 transition-transform duration-300 lg:hidden ${
+            aberto ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          {conteudo}
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <aside className="hidden w-72 shrink-0 flex-col border-r border-emerald-900/40 lg:flex">
+      {conteudo}
     </aside>
   );
 }
