@@ -1,0 +1,167 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { LogOut } from "lucide-react";
+import {
+  filtrarNavegacao,
+  type GrupoNavegacao,
+  type ItemNavegacao,
+} from "@/lib/navegacao";
+import type { PapelUsuario } from "@/lib/api";
+
+type AppSidebarProps = {
+  navegacao: GrupoNavegacao[];
+  papel: PapelUsuario;
+  nomeOrganizacao: string;
+  tipoOrganizacao: string | null;
+  nomeUsuario: string;
+  emailUsuario: string;
+  pendentes: number | null;
+  onSair: () => void;
+};
+
+function iniciais(nome: string) {
+  return (
+    nome
+      .split(/\s+/)
+      .filter((parte) => parte.length > 2)
+      .slice(0, 2)
+      .map((parte) => parte[0]?.toUpperCase())
+      .join("") || nome.slice(0, 2).toUpperCase()
+  );
+}
+
+function Item({
+  item,
+  ativo,
+  pendentes,
+}: {
+  item: ItemNavegacao;
+  ativo: boolean;
+  pendentes: number | null;
+}) {
+  const Icone = item.icone;
+
+  return (
+    <Link
+      href={item.href}
+      className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
+        ativo
+          ? "bg-white/5 text-white"
+          : "text-gray-400 hover:bg-white/5 hover:text-gray-200"
+      }`}
+    >
+      <Icone
+        className={`h-4 w-4 shrink-0 ${
+          ativo
+            ? "text-emerald-400"
+            : "text-gray-500 group-hover:text-emerald-400"
+        }`}
+        aria-hidden="true"
+      />
+
+      <span className="min-w-0 flex-1 truncate font-medium">
+        {item.titulo}
+      </span>
+
+      {item.contador === "comprovantes" && pendentes ? (
+        <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-black">
+          {pendentes}
+        </span>
+      ) : null}
+    </Link>
+  );
+}
+
+export default function AppSidebar({
+  navegacao,
+  papel,
+  nomeOrganizacao,
+  tipoOrganizacao,
+  nomeUsuario,
+  emailUsuario,
+  pendentes,
+  onSair,
+}: AppSidebarProps) {
+  const pathname = usePathname();
+  const grupos = filtrarNavegacao(navegacao, papel);
+
+  return (
+    <aside className="hidden w-72 shrink-0 flex-col border-r border-emerald-900/40 bg-[#0A1110] lg:flex">
+      <div className="border-b border-emerald-900/40 p-5">
+        <Link href="/" className="flex items-center gap-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-sm font-bold text-white">
+            {iniciais(nomeOrganizacao)}
+          </span>
+
+          <span className="min-w-0">
+            <span className="block truncate text-sm font-bold text-white">
+              {nomeOrganizacao}
+            </span>
+            <span className="block truncate text-xs text-gray-500">
+              {tipoOrganizacao ?? "Plataforma"}
+            </span>
+          </span>
+        </Link>
+      </div>
+
+      <nav className="flex-1 space-y-6 overflow-y-auto p-4">
+        {grupos.map((grupo) => (
+          <div key={grupo.titulo}>
+            <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-gray-600">
+              {grupo.titulo}
+            </p>
+
+            <div className="space-y-1">
+              {grupo.itens.map((item) => {
+                const ativo =
+                  pathname === item.href ||
+                  (item.href !== "/" && pathname.startsWith(`${item.href}/`));
+
+                return (
+                  <Item
+                    key={item.href}
+                    item={item}
+                    ativo={ativo}
+                    pendentes={pendentes}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </nav>
+
+      <div className="border-t border-emerald-900/40 p-4">
+        <div className="mb-3 flex items-center gap-3 rounded-xl bg-[#131D1C] p-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-xs font-bold text-emerald-300">
+            {iniciais(nomeUsuario || emailUsuario)}
+          </span>
+
+          <span className="min-w-0">
+            <span className="block truncate text-xs font-semibold text-white">
+              {nomeUsuario || emailUsuario}
+            </span>
+            <span className="block truncate text-[10px] text-gray-500">
+              {papel === "ORGANIZADOR"
+                ? "Organizador"
+                : papel === "COMITE_CIENTIFICO"
+                  ? "Comitê Científico"
+                  : papel}
+            </span>
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={onSair}
+          className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm text-gray-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
+        >
+          <LogOut className="h-4 w-4" aria-hidden="true" />
+          Sair
+        </button>
+      </div>
+    </aside>
+  );
+}
