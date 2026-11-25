@@ -14,20 +14,23 @@ export function useSession(papeis?: PapelUsuario[]) {
   const [user, setUser] = useState<Usuario | null>(null);
   const [pronto, setPronto] = useState(false);
 
-  useEffect(() => {
-    const u = getToken() ? getUser() : null;
+ useEffect(() => {
+  const inicializar = async () => {
+    await Promise.resolve();
+
+    const u = getUser();
+
     if (!u) {
-      router.replace("/login");
+      setPronto(true);
       return;
     }
-    if (papeis && u.papel !== "DEV" && !papeis.includes(u.papel)) {
-      router.replace("/");
-      return;
-    }
+
     setUser(u);
     setPronto(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  };
+
+  inicializar();
+}, []);
 
   return { user, pronto };
 }

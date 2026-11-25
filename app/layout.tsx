@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import AccessibilityBar from "@/components/AccessibilityBar";
-import AppHeader from "@/components/layout/AppHeader";
+
 import Rodape from "@/components/layout/Rodape";
 import AvisoSessao from "@/components/sessao/AvisoSessao";
 import { MARCA } from "@/lib/marca";
 import "./globals.css";
+import AppHeaderPlataforma from "@/components/layout/AppHeaderPlataforma";
+
 
 export const metadata: Metadata = {
   title: MARCA.nome,
@@ -25,7 +27,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="antialiased bg-[#F6F9F8] selection:bg-emerald-500/30">
-        <AppHeader />
+        <AppHeaderPlataforma />
 
         {children}
         <AvisoSessao />

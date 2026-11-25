@@ -56,49 +56,7 @@ type Ferramenta = {
 
 // Agrupadas pela etapa do hackathon em que são usadas. Os papéis espelham a API: esconder é só
 // conforto, a API responde 403 de todo modo.
-const GRUPOS: { titulo: string; ferramentas: Ferramenta[] }[] = [
-  {
-    titulo: "Preparação",
-    ferramentas: [
-      { href: "/admin/hackathon", titulo: "Hackathons", descricao: "Datas, status, descrição e equipes", icone: Rocket, papeis: ["ORGANIZADOR"] },
-      { href: "/admin/termos", titulo: "Regulamento e termos", descricao: "Rascunhos e versões vigentes", icone: FileText, papeis: ["ORGANIZADOR"] },
-      { href: "/admin/conteudo", titulo: "Página pública", descricao: "Apoiadores, cronograma e perguntas frequentes", icone: Megaphone, papeis: ["ORGANIZADOR"] },
-      { href: "/admin/temas", titulo: "Temas", descricao: "O que as equipes podem escolher", icone: Sparkles, papeis: ["ORGANIZADOR"] },
-      { href: "/admin/rubrica", titulo: "Rubrica de avaliação", descricao: "Critérios e pesos", icone: Scale, papeis: ["ORGANIZADOR"] },
-    ],
-  },
-  {
-    titulo: "Inscrições",
-    ferramentas: [
-      { href: "/admin/comprovantes", titulo: "Comprovantes", descricao: "Aprove o vínculo dos participantes", icone: ClipboardCheck, papeis: ["ORGANIZADOR", "COMITE_CIENTIFICO"], contador: "comprovantes" },
-    ],
-  },
-  {
-    titulo: "Avaliação e resultado",
-    ferramentas: [
-      { href: "/admin/avaliacoes/configuracao", titulo: "Configuração de Avaliação", descricao: "Defina quantos avaliadores lerão cada proposta", icone: Settings2, papeis: ["ORGANIZADOR"] },
-      { href: "/admin/avaliacoes", titulo: "Distribuição", descricao: "Propostas para o Comitê Científico", icone: Users, papeis: ["ORGANIZADOR"] },
-      { href: "/avaliador", titulo: "Minhas avaliações", descricao: "Propostas designadas para você", icone: Scale, papeis: ["COMITE_CIENTIFICO"] },
-      { href: "/admin/resultado", titulo: "Resultado", descricao: "Homologue e divulgue as aprovadas", icone: Trophy, papeis: ["ORGANIZADOR"] },
-    ],
-  },
-  {
-    titulo: "Treinamento e mentoria",
-    ferramentas: [
-      { href: "/admin/treinamento", titulo: "Treinamento das equipes", descricao: "Sessões, materiais e conclusão", icone: GraduationCap, papeis: ["ORGANIZADOR"] },
-      { href: "/admin/mentores", titulo: "Mentores", descricao: "Cadastre e convide mentores", icone: Handshake, papeis: ["ORGANIZADOR", "COMITE_CIENTIFICO"] },
-      { href: "/admin/mentoria", titulo: "Mentoria das equipes", descricao: "Escolha o mentor de cada equipe aprovada", icone: UserCheck, papeis: ["ORGANIZADOR", "COMITE_CIENTIFICO"] },
-    ],
-  },
-  {
-    titulo: "Organização",
-    ferramentas: [
-      { href: "/admin/organizacao", titulo: "Organização", descricao: "Dados da organização e cadastro do comitê", icone: Building2, papeis: ["ORGANIZADOR", "COMITE_CIENTIFICO"] },
-      { href: "/admin/usuarios", titulo: "Equipe e acessos", descricao: "Edite, troque o perfil, desative ou reative contas", icone: UserCog, papeis: ["ORGANIZADOR", "COMITE_CIENTIFICO"] },
-      { href: "/admin/emails", titulo: "Fila de e-mails", descricao: "Acompanhe os envios e reenvie os que falharam", icone: Mail, papeis: ["ORGANIZADOR"] },
-    ],
-  },
-];
+
 
 
 type Resumo = {
@@ -195,10 +153,7 @@ export default function AdminDashboardPage() {
   ];
 
 
-  const ferramentasVisiveis = GRUPOS.map((g) => ({
-    ...g,
-    ferramentas: g.ferramentas.filter((f) => user.papel === "DEV" || f.papeis.includes(user.papel)),
-  })).filter((g) => g.ferramentas.length > 0);
+
 
 
   const nomeOrg = org?.nome ?? (user.papel === "DEV" ? "Acesso de desenvolvimento" : "Sua organização");
@@ -363,37 +318,7 @@ export default function AdminDashboardPage() {
 
 
           {/* Ferramentas */}
-          <section className="rounded-3xl border border-gray-200 bg-white p-6">
-            <h2 className="mb-4 text-lg font-bold text-gray-900">Ferramentas</h2>
-            <div className="space-y-5">
-              {ferramentasVisiveis.map((grupo) => (
-                <div key={grupo.titulo}>
-                  <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-gray-500">{grupo.titulo}</h3>
-                  <ul className="grid gap-2 sm:grid-cols-2">
-                    {grupo.ferramentas.map(({ href, titulo, descricao, icone: Icone, contador }) => (
-                      <li key={href}>
-                        <Link href={href} className="group flex items-center gap-3 rounded-xl border border-gray-200 p-3 transition-all hover:border-emerald-300 hover:bg-emerald-50/40">
-                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 group-hover:bg-emerald-100">
-                            <Icone className="h-5 w-5" aria-hidden="true" />
-                          </span>
-                          <span className="min-w-0 flex-1">
-                            <span className="flex items-center gap-2 font-semibold text-gray-900">
-                              {titulo}
-                              {contador === "comprovantes" && pendentes ? (
-                                <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[11px] font-bold text-white">{textoPendentes}</span>
-                              ) : null}
-                            </span>
-                            <span className="block truncate text-xs text-gray-500">{descricao}</span>
-                          </span>
-                          <ArrowRight className="h-4 w-4 shrink-0 text-gray-300 transition-transform group-hover:translate-x-0.5 group-hover:text-emerald-600" aria-hidden="true" />
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </section>
+
         </div>
 
 
