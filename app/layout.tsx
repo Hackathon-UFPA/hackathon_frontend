@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import AccessibilityBar from "@/components/AccessibilityBar";
-import AppHeader from "@/components/layout/AppHeader";
+
 import Rodape from "@/components/layout/Rodape";
 import AvisoSessao from "@/components/sessao/AvisoSessao";
 import { MARCA } from "@/lib/marca";

@@ -52,9 +52,13 @@ function Item({
     return (
       <span
         title={item.descricao}
-        className="flex cursor-not-allowed items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-gray-600"
+        className="flex cursor-not-allowed items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm text-gray-600"
       >
-        <Icone className="h-4 w-4 shrink-0 text-gray-600" aria-hidden="true" />
+        <Icone
+          className="h-4 w-4 shrink-0 text-gray-600"
+          aria-hidden="true"
+        />
+
         <span className="min-w-0 flex-1 truncate font-medium">
           {item.titulo}
         </span>
@@ -66,14 +70,24 @@ function Item({
     <Link
       href={item.href}
       onClick={onClique}
-      className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
+      aria-current={ativo ? "page" : undefined}
+      className={`group relative flex items-center gap-3 overflow-hidden rounded-xl border px-3 py-2.5 text-sm transition-all duration-200 ${
         ativo
-          ? "bg-white/5 text-white"
-          : "text-gray-400 hover:bg-white/5 hover:text-gray-200"
+          ? "border-emerald-500/30 bg-emerald-500/10 text-white"
+          : "border-transparent text-gray-400 hover:border-emerald-500/20 hover:bg-emerald-500/10 hover:text-emerald-100"
       }`}
     >
+      <span
+        className={`absolute inset-y-2 left-0 w-0.5 rounded-full transition-all duration-200 ${
+          ativo
+            ? "bg-emerald-400"
+            : "bg-transparent group-hover:bg-emerald-400/40"
+        }`}
+        aria-hidden="true"
+      />
+
       <Icone
-        className={`h-4 w-4 shrink-0 ${
+        className={`h-4 w-4 shrink-0 transition-colors duration-200 ${
           ativo
             ? "text-emerald-400"
             : "text-gray-500 group-hover:text-emerald-400"
@@ -109,6 +123,7 @@ export default function AppSidebar({
 }: AppSidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
   const grupos = filtrarNavegacao(navegacao, papel);
 
   const estaAtivo = (item: ItemNavegacao) => {
@@ -125,7 +140,10 @@ export default function AppSidebar({
     <div className="flex h-full flex-col bg-[#0A1110]">
       <div className="border-b border-emerald-900/40 p-5">
         <div className="flex items-center justify-between gap-3">
-          <Link href="/" className="flex min-w-0 items-center gap-3">
+          <Link
+            href="/"
+            className="flex min-w-0 items-center gap-3"
+          >
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-sm font-bold text-white">
               {iniciais(nomeOrganizacao)}
             </span>
@@ -134,6 +152,7 @@ export default function AppSidebar({
               <span className="block truncate text-sm font-bold text-white">
                 {nomeOrganizacao}
               </span>
+
               <span className="block truncate text-xs text-gray-500">
                 {tipoOrganizacao ?? "Plataforma"}
               </span>
@@ -167,7 +186,9 @@ export default function AppSidebar({
                   item={item}
                   ativo={estaAtivo(item)}
                   pendentes={pendentes}
-                  onClique={variante === "mobile" ? onFechar : undefined}
+                  onClique={
+                    variante === "mobile" ? onFechar : undefined
+                  }
                 />
               ))}
             </div>
@@ -177,28 +198,29 @@ export default function AppSidebar({
 
       <div className="border-t border-emerald-900/40 p-4">
         <Link
-  href="/perfil"
-  title="Meu perfil"
-  aria-label="Meu perfil"
-  className="mb-3 flex items-center gap-3 rounded-xl bg-[#131D1C] p-3 transition-colors hover:bg-[#182423]"
->
-  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-xs font-bold text-emerald-300">
-    {iniciais(nomeUsuario || emailUsuario)}
-  </span>
+          href="/perfil"
+          title="Meu perfil"
+          aria-label="Meu perfil"
+          className="mb-3 flex items-center gap-3 rounded-xl bg-[#131D1C] p-3 transition-colors hover:bg-[#182423]"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-xs font-bold text-emerald-300">
+            {iniciais(nomeUsuario || emailUsuario)}
+          </span>
 
-  <span className="min-w-0 flex-1">
-    <span className="block truncate text-xs font-semibold text-white">
-      {nomeUsuario || emailUsuario}
-    </span>
-    <span className="block truncate text-[10px] text-gray-500">
-      {papel === "ORGANIZADOR"
-        ? "Organizador"
-        : papel === "COMITE_CIENTIFICO"
-          ? "Comitê Científico"
-          : papel}
-    </span>
-  </span>
-</Link>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-xs font-semibold text-white">
+              {nomeUsuario || emailUsuario}
+            </span>
+
+            <span className="block truncate text-[10px] text-gray-500">
+              {papel === "ORGANIZADOR"
+                ? "Organizador"
+                : papel === "COMITE_CIENTIFICO"
+                  ? "Comitê Científico"
+                  : papel}
+            </span>
+          </span>
+        </Link>
 
         <button
           type="button"

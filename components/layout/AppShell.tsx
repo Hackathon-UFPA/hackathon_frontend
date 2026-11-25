@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { Menu } from "lucide-react";
+import type { GrupoNavegacao } from "@/lib/navegacao";
 import AppSidebar from "./AppSidebar";
-import { filtrarNavegacao, type GrupoNavegacao } from "@/lib/navegacao";
+  
 import type { PapelUsuario } from "@/lib/api";
 import NotificacoesSino from "@/components/notificacoes/NotificacoesSino";
 import AlternarTema from "@/components/layout/AlternarTema";
@@ -38,14 +39,11 @@ export default function AppShell({
   titulo,
   acoes,
 }: AppShellProps) {
-  const pathname = usePathname();
+
   const [menuAberto, setMenuAberto] = useState(false);
 
-  const grupos = filtrarNavegacao(navegacao, papel);
 
-  useEffect(() => {
-    setMenuAberto(false);
-  }, [pathname]);
+
 
   useEffect(() => {
     document.body.style.overflow = menuAberto ? "hidden" : "";
@@ -58,6 +56,7 @@ export default function AppShell({
     <div className="min-h-screen bg-[#0A1110] text-gray-300">
       <div className="flex min-h-screen">
         <AppSidebar
+         
           navegacao={navegacao}
           papel={papel}
           nomeOrganizacao={nomeOrganizacao}
@@ -69,6 +68,7 @@ export default function AppShell({
         />
 
         <AppSidebar
+          
           navegacao={navegacao}
           papel={papel}
           nomeOrganizacao={nomeOrganizacao}
@@ -97,11 +97,18 @@ export default function AppShell({
 
                 <div className="min-w-0">
                   <p className="flex items-center gap-2 text-xs text-gray-500">
-                    <Link href="/" className="hover:text-emerald-400">
+                    <Link
+                      href="/"
+                      className="hover:text-emerald-400"
+                    >
                       Início
                     </Link>
+
                     <span>/</span>
-                    <span className="truncate text-gray-300">{titulo}</span>
+
+                    <span className="truncate text-gray-300">
+                      {titulo}
+                    </span>
                   </p>
 
                   <h1 className="mt-1 truncate text-xl font-bold text-white sm:text-2xl">
@@ -111,11 +118,11 @@ export default function AppShell({
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-  <NotificacoesSino />
-  <AlternarTema />
+                <NotificacoesSino />
+                <AlternarTema />
 
-  {acoes && <>{acoes}</>}
-</div>
+                {acoes && <>{acoes}</>}
+              </div>
             </div>
           </header>
 
