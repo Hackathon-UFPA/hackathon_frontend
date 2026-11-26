@@ -15,6 +15,10 @@ O front consome a API REST do backend FastAPI (`hackathon_backend`). O contrato 
 | `/sucesso` | Confirmação com o protocolo da inscrição | Integrada | `/equipes/minhas`, `/equipes/{id}/painel` (quando o protocolo não vem na URL) |
 | `/admin` | Painel do Organizador e do Comitê Científico | Integrada | — (protege a rota por perfil) |
 | `/admin/comprovantes` | Fila de comprovantes: aprovar e recusar com motivo | Integrada | `GET /admin/comprovantes`, `POST /admin/comprovantes/{id}/aprovar`, `POST /admin/comprovantes/{id}/recusar` |
+| `/equipe?aba=mentoria` | Mentor da equipe, calendário de marcos e registro das entregas parciais pelo líder | Integrada | `GET /equipes/{id}/mentor`, `GET /hackathons/{id}/mentoria/marcos`, `GET`/`POST /equipes/{id}/mentoria/entregas` |
+| `/mentor/equipes/[equipeId]` | Mentor acompanha marcos e entregas de uma equipe | Integrada | `GET /me/mentoria/equipes`, `GET /hackathons/{id}/mentoria/marcos`, `GET /equipes/{id}/mentoria/entregas` |
+| `/admin/mentoria/marcos` | Comitê Científico e Organizador cadastram, editam e excluem os marcos da edição | Integrada | `GET`/`POST /admin/hackathons/{id}/mentoria/marcos`, `PATCH`/`DELETE .../marcos/{marco_id}` |
+| `/admin/mentoria/equipes/[equipeId]` | Gestão consulta as entregas de uma equipe aprovada | Integrada | `GET /equipes/{id}/mentoria/entregas`, `GET /hackathons/{id}/mentoria/marcos` |
 | `/admin/hackathon` | Gestão da edição | **Informativa**: a API ainda não tem rotas para criar ou editar o hackathon | — |
 | `/`, `/cronograma`, `/equipe` | Landing, cronograma e dashboard da equipe | Não alteradas nesta etapa (sem integração com a API) | — |
 

@@ -32,13 +32,15 @@ import {
 import { ResultadoCientifico } from "@/components/modulo-d/ResultadoCientifico";
 import { ComposicaoEquipe } from "@/components/modulo-c/ComposicaoEquipe";
 import { MentorEquipe } from "@/components/modulo-c/MentorEquipe";
+import { MentoriaEquipe } from "@/components/mentoria/MentoriaEquipe";
 
 type AbaPainel =
   | "visao-geral"
   | "inscricao"
   | "convites-conta"
   | "proposta"
-  | "resultado";
+  | "resultado"
+  | "mentoria";
 
 const ABAS_VALIDAS: AbaPainel[] = [
   "visao-geral",
@@ -46,6 +48,7 @@ const ABAS_VALIDAS: AbaPainel[] = [
   "convites-conta",
   "proposta",
   "resultado",
+  "mentoria",
 ];
 
 function FundoPadrao() {
@@ -913,6 +916,15 @@ function ConteudoPainelEquipe() {
         ) : (
           <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-xs text-gray-600 backdrop-blur-md">
             Selecione ou crie uma equipe para consultar o resultado.
+          </div>
+        ))}
+
+      {abaAtiva === "mentoria" &&
+        (painel ? (
+          <MentoriaEquipe key={painel.equipe_id} painel={painel} />
+        ) : (
+          <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-xs text-gray-600 backdrop-blur-md">
+            Selecione ou crie uma equipe para acompanhar a mentoria e as entregas.
           </div>
         ))}
     </div>

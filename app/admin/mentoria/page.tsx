@@ -5,7 +5,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
+  CalendarClock,
   CheckCircle2,
+  ClipboardList,
   GraduationCap,
   Handshake,
   History,
@@ -325,7 +327,7 @@ export default function AdminMentoriaPage() {
             </p>
           </div>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end lg:justify-end">
           <div>
             <label htmlFor="hack" className={rotulo}>Hackathon</label>
             <select id="hack" className={`${campo} sm:w-72`} value={escolhido} onChange={(e) => trocarHackathon(e.target.value)}>
@@ -339,6 +341,9 @@ export default function AdminMentoriaPage() {
           <button type="button" onClick={() => { setLinhas(null); carregarEquipes(escolhido); carregarMentores(); }} className={btnSecundario}>
             <RefreshCw className="h-4 w-4" aria-hidden="true" /> Atualizar
           </button>
+          <Link href={`/admin/mentoria/marcos${escolhido ? `?hackathon_id=${escolhido}` : ""}`} className={`${btnSecundario} whitespace-nowrap`}>
+            <CalendarClock className="h-4 w-4" aria-hidden="true" /> Calendário de entregas
+          </Link>
         </div>
       </header>
 
@@ -495,6 +500,14 @@ export default function AdminMentoriaPage() {
                       <button type="button" onClick={() => alternar("historico")} aria-expanded={aberta === "historico"} aria-label="Histórico" title="Histórico" className={btnSecundario}>
                         <History className="h-4 w-4" aria-hidden="true" />
                       </button>
+                      <Link
+                        href={`/admin/mentoria/equipes/${l.equipe_id}?hackathon_id=${escolhido}`}
+                        aria-label={`Entregas de ${l.equipe_nome || "Equipe sem nome"}`}
+                        title="Entregas da equipe"
+                        className={btnSecundario}
+                      >
+                        <ClipboardList className="h-4 w-4" aria-hidden="true" />
+                      </Link>
                     </div>
                   </div>
                   {aberta === "historico" && <Historico equipeId={l.equipe_id} mentores={mentores} />}
