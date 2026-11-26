@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Briefcase, CalendarDays, Handshake, RefreshCw, Users } from "lucide-react";
+import { Briefcase, CalendarDays, ClipboardList, Handshake, RefreshCw, Users } from "lucide-react";
 import ApiErrorAlert from "@/components/feedback/ApiErrorAlert";
 import { btnSecundario, dataHora } from "@/components/mentores/ui";
 import { hackathons as hackathonsApi, type HackathonResponse } from "@/lib/api";
@@ -158,6 +158,15 @@ export default function MentorPage() {
                       </div>
                       <p className="mt-2 text-xs text-gray-500">Mentoria desde {dataHora(a.atribuido_em)}</p>
                       {a.encerrada_em && <p className="text-xs text-gray-500">Encerrada em {dataHora(a.encerrada_em)}</p>}
+                      {!a.encerrada_em && (
+                        <Link
+                          href={`/mentor/equipes/${a.equipe_id}`}
+                          className="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-emerald-700 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                        >
+                          <ClipboardList className="h-4 w-4" aria-hidden="true" /> Ver marcos e entregas
+                          <span className="sr-only"> de {equipe_nome || "Equipe sem nome"}</span>
+                        </Link>
+                      )}
                     </li>
                   ))}
                 </ul>

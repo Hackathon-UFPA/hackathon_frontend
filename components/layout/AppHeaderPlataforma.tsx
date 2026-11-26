@@ -8,6 +8,7 @@ const ROTAS_COM_SIDEBAR = [
   "/proposta",
   "/avaliador",
   "/admin",
+  "/mentor",
   "/perfil",
 ];
 
